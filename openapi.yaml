@@ -21,14 +21,13 @@ security:
 paths:
   /documents:
     get:
-      summary: REPLACEME
+      summary: Get documents
       tags:
         - documents
-      description: REPLACEME
       operationId: getDocuments
       responses:
         '200':
-          description: REPLACEME
+          description: Successful GET request
           content:
             application/json:
               schema:
@@ -36,16 +35,15 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     post:
-      summary: REPLACEME
+      summary: Create a new document
       tags:
         - documents
-      description: REPLACEME
       operationId: postDocument
       requestBody:
         $ref: '#/components/requestBodies/DocumentPostBody'
       responses:
         '201':
-          description: REPLACEME
+          description: Successful creation
           content:
             application/json:
               schema:
@@ -56,16 +54,15 @@ paths:
           $ref: '#/components/responses/500'
   '/documents/{id}':
     get:
-      summary: REPLACEME
+      summary: Get a single document
       tags:
         - documents
-      description: REPLACEME
       operationId: getDocumentById
       parameters:
         - $ref: '#/components/parameters/documentId'
       responses:
         '200':
-          description: REPLACEME
+          description: Successful GET request
           content:
             application/json:
               schema:
@@ -75,10 +72,9 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     patch:
-      summary: REPLACEME
+      summary: Update an existing document
       tags:
         - documents
-      description: REPLACEME
       operationId: patchDocumentById
       parameters:
         - $ref: '#/components/parameters/documentId'
@@ -86,7 +82,7 @@ paths:
         $ref: '#/components/requestBodies/DocumentPatchBody'
       responses:
         '200':
-          description: REPLACEME
+          description: Successful update
           content:
             application/json:
               schema:
@@ -99,16 +95,15 @@ paths:
           $ref: '#/components/responses/500'
   '/documents/{id}/file':
     get:
-      summary: REPLACEME
+      summary: Get a document's file
       tags:
         - documents
-      description: REPLACEME
       operationId: getFileByDocumentId
       parameters:
         - $ref: '#/components/parameters/documentId'
       responses:
         '200':
-          description: REPLACEME
+          description: Successful file request
           content:
             application/octet-stream:
               schema:
@@ -118,16 +113,17 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+    # TODO: should this be a PUT request instead?
     patch:
-      summary: REPLACEME
+      summary: Update a document's file
       tags:
         - documents
-      description: REPLACEME
       operationId: patchFileByDocumentId
       parameters:
         - $ref: '#/components/parameters/documentId'
       requestBody:
         required: true
+        description: The new file
         content:
           application/octet-stream:
             schema:
@@ -153,13 +149,12 @@ components:
     documentId:
       name: id
       in: path
-      description: REPLACEME
+      description: The ID of a document
       required: true
       schema:
         type: string
   requestBodies:
     DocumentPostBody:
-      description: REPLACEME
       required: true
       content:
         application/json:
@@ -172,7 +167,6 @@ components:
                 $ref: '#/components/schemas/DocumentPostResource'
             additionalProperties: false
     DocumentPatchBody:
-      description: REPLACEME
       required: true
       content:
         application/json:
