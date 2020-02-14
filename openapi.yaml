@@ -1,0 +1,325 @@
+openapi: 3.0.0
+info:
+  title: OnBase Documents API
+  description: API for OnBase documents
+  version: v1
+  license:
+    name: GNU Affero General Public License Version 3
+    url: 'http://www.gnu.org/licenses/agpl-3.0.en.html'
+  contact:
+    name: IS Data Architecture Team
+    url: 'https://is.oregonstate.edu/data-architecture'
+    email: isdataarchitecture@oregonstate.edu
+externalDocs:
+  description: GitHub Repository
+  url: TBD
+servers:
+  - url: 'https://api.oregonstate.edu/v1'
+security:
+  - OAuth2:
+      - full
+paths:
+  /documents:
+    get:
+      summary: REPLACEME
+      tags:
+        - documents
+      description: REPLACEME
+      operationId: getDocuments
+      responses:
+        '200':
+          description: REPLACEME
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentSetResult'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      summary: REPLACEME
+      tags:
+        - documents
+      description: REPLACEME
+      operationId: postDocument
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentPostBody'
+      responses:
+        '201':
+          description: REPLACEME
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResult'
+        '409':
+          $ref: '#/components/responses/409Post'
+        '500':
+          $ref: '#/components/responses/500'
+  '/documents/{id}':
+    get:
+      summary: REPLACEME
+      tags:
+        - documents
+      description: REPLACEME
+      operationId: getDocumentById
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      responses:
+        '200':
+          description: REPLACEME
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResult'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    patch:
+      summary: REPLACEME
+      tags:
+        - documents
+      description: REPLACEME
+      operationId: patchDocumentById
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentPatchBody'
+      responses:
+        '200':
+          description: REPLACEME
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResult'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409Patch'
+        '500':
+          $ref: '#/components/responses/500'
+  '/documents/{id}/file':
+    get:
+      summary: REPLACEME
+      tags:
+        - documents
+      description: REPLACEME
+      operationId: getFileByDocumentId
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      responses:
+        '200':
+          description: REPLACEME
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    patch:
+      summary: REPLACEME
+      tags:
+        - documents
+      description: REPLACEME
+      operationId: patchFileByDocumentId
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '204':
+          description: File successfully uploaded
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://api.oregonstate.edu/oauth2/token'
+          scopes:
+            full: Full access to the API
+  parameters:
+    documentId:
+      name: id
+      in: path
+      description: REPLACEME
+      required: true
+      schema:
+        type: string
+  requestBodies:
+    DocumentPostBody:
+      description: REPLACEME
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/DocumentPostResource'
+            additionalProperties: false
+    DocumentPatchBody:
+      description: REPLACEME
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/DocumentPatchResource'
+            additionalProperties: false
+  responses:
+    '400':
+      description: Bad request
+      content: &ref_0
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResult'
+    '404':
+      description: Resource not found
+      content: *ref_0
+    '500':
+      description: Internal server error
+      content: *ref_0
+    204Delete:
+      description: The resource was successfully deleted
+    204RelationshipUpdate:
+      description: The relationship(s) already match the requested state
+    409Post:
+      description: >-
+        The request body resource object's type was invalid or, if a client-generated ID was used, a
+        resource already exists with this id
+      content: *ref_0
+    409Patch:
+      description: >-
+        The request body resource object had an invalid type, invalid ID, or violated a uniqueness
+        constraint
+      content: *ref_0
+  schemas:
+    SelfLink:
+      type: object
+      properties:
+        self:
+          type: string
+          format: uri
+          description: Self-link of current resource
+    ErrorObject:
+      type: object
+      properties:
+        status:
+          type: string
+          description: HTTP status code
+          example: '123'
+        title:
+          type: string
+          description: 'A short, user readable summary of the error'
+          example: Not Found
+        code:
+          type: string
+          description: An application-specific error code
+          example: '1234'
+        detail:
+          type: string
+          description: A long description of the error that may contain instance-specific details
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+              format: uri
+              description: A link to further information about the error
+              example: 'https://developer.oregonstate.edu/documentation/error-reference#1234'
+    ErrorResult:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+    DocumentId:
+      type: string
+      description: Unique ID of document resource
+    DocumentType:
+      type: string
+      enum:
+        - document
+    DocumentAttributes:
+      type: object
+      properties:
+        metaProp:
+          type: string
+          description: Meta information TBD
+      additionalProperties: false
+    DocumentGetResource:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        id:
+          $ref: '#/components/schemas/DocumentId'
+        attributes:
+          $ref: '#/components/schemas/DocumentAttributes'
+        links:
+          $ref: '#/components/schemas/SelfLink'
+      additionalProperties: false
+    DocumentPostResource:
+      type: object
+      required:
+        - type
+        - attributes
+      properties:
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        attributes:
+          type: object
+          allOf:
+            - type: object
+              required:
+                - metaProp
+            - $ref: '#/components/schemas/DocumentAttributes'
+      additionalProperties: false
+    DocumentPatchResource:
+      type: object
+      required:
+        - type
+        - id
+      properties:
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        id:
+          $ref: '#/components/schemas/DocumentId'
+        attributes:
+          $ref: '#/components/schemas/DocumentAttributes'
+      additionalProperties: false
+    DocumentResult:
+      type: object
+      properties:
+        links:
+          $ref: '#/components/schemas/SelfLink'
+        data:
+          $ref: '#/components/schemas/DocumentGetResource'
+    DocumentSetResult:
+      type: object
+      properties:
+        links:
+          $ref: '#/components/schemas/SelfLink'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentGetResource'
