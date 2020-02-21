@@ -1,5 +1,9 @@
 # OnBase Documents API
 
+## Configure
+
+Copy `OnBaseDocsApi/api-config-example.json` to `OnBaseDocsApi/api-config.json` and modify as necessary
+
 ## Run the API
 
 ### Docker
