@@ -25,6 +25,9 @@ paths:
       tags:
         - documents
       operationId: getDocuments
+      parameters:
+        - $ref: '#/components/parameters/pageNumber'
+        - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
           description: Successful GET request
@@ -113,29 +116,6 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-    # TODO: should this be a PUT request instead?
-    patch:
-      summary: Update a document's file
-      tags:
-        - documents
-      operationId: patchFileByDocumentId
-      parameters:
-        - $ref: '#/components/parameters/documentId'
-      requestBody:
-        required: true
-        description: The new file
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-      responses:
-        '204':
-          description: File successfully uploaded
-        '404':
-          $ref: '#/components/responses/404'
-        '500':
-          $ref: '#/components/responses/500'
 components:
   securitySchemes:
     OAuth2:
@@ -146,6 +126,25 @@ components:
           scopes:
             full: Full access to the API
   parameters:
+    pageNumber:
+      name: 'page[number]'
+      in: query
+      required: false
+      description: Page number of results
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    pageSize:
+      name: 'page[size]'
+      in: query
+      required: false
+      description: Number of results to return
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 25
     documentId:
       name: id
       in: path
@@ -157,27 +156,42 @@ components:
     DocumentPostBody:
       required: true
       content:
-        application/json:
+        multipart/form-data:
           schema:
-            type: object
-            required:
-              - data
-            properties:
-              data:
-                $ref: '#/components/schemas/DocumentPostResource'
-            additionalProperties: false
+            allOf:
+              - type: object
+                required:
+                  - documentFile
+                properties:
+                  documentFile:
+                    type: string
+                    format: binary
+              - type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DocumentPostResource'
+                additionalProperties: false
     DocumentPatchBody:
+      description: REPLACEME
       required: true
       content:
-        application/json:
+        multipart/form-data:
           schema:
-            type: object
-            required:
-              - data
-            properties:
-              data:
-                $ref: '#/components/schemas/DocumentPatchResource'
-            additionalProperties: false
+            allOf:
+              - type: object
+                properties:
+                  documentFile:
+                    type: string
+                    format: binary
+              - type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DocumentPatchResource'
+                additionalProperties: false
   responses:
     '400':
       description: Bad request
@@ -213,6 +227,42 @@ components:
           type: string
           format: uri
           description: Self-link of current resource
+    Meta:
+      properties:
+        totalResults:
+          type: integer
+          description: Total number of results
+          example: 10
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 10
+        currentPageNumber:
+          type: integer
+          description: Page number of the returned results
+          example: 1
+        currentPageSize:
+          type: integer
+          description: Number of results per page
+          example: 25
+    PaginationLinks:
+      properties:
+        first:
+          type: string
+          format: uri
+          description: The first page of data
+        last:
+          type: string
+          format: uri
+          description: The last page of data
+        prev:
+          type: string
+          format: uri
+          description: The previous page of data
+        next:
+          type: string
+          format: uri
+          description: The next page of data
     ErrorObject:
       type: object
       properties:
@@ -256,9 +306,36 @@ components:
     DocumentAttributes:
       type: object
       properties:
-        metaProp:
+        createdBy:
+          type: integer
+          format: int64
+        dateStored:
           type: string
-          description: Meta information TBD
+        documentDate:
+          type: string
+        documentType:
+          type: string
+        status:
+          type: string
+        name:
+          type: string
+        id:
+          type: integer
+          format: int64
+        latestAllowedRevisionId:
+          type: integer
+          format: int64
+        defaultFileType:
+          type: string
+        keywords:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: string
       additionalProperties: false
     DocumentGetResource:
       type: object
@@ -285,7 +362,16 @@ components:
           allOf:
             - type: object
               required:
-                - metaProp
+                - createdBy
+                - dateStored
+                - documentDate
+                - documentType
+                - status
+                - name
+                - id
+                - latestAllowedRevisionId
+                - defaultFileType
+                - keywords
             - $ref: '#/components/schemas/DocumentAttributes'
       additionalProperties: false
     DocumentPatchResource:
@@ -312,7 +398,12 @@ components:
       type: object
       properties:
         links:
-          $ref: '#/components/schemas/SelfLink'
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/SelfLink'
+            - $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/Meta'
         data:
           type: array
           items:
