@@ -4,17 +4,12 @@
 
 ### Docker
 
-Build
-
+Remove any existing containers named `onbase-docs-api`
 ```shell
-docker build -t onbase-docs-api .
+docker rm -f onbase-docs-api
 ```
 
-Run
+Build and run the API
 ```shell
-docker run --detach \
-    -it \
-    -p ${PORT}:9000 \
-    --name onbase-docs-api \
-    onbase-docs-api
+./docker.sh
 ```
