@@ -68,9 +68,14 @@
     </Compile>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="api\TestController.cs" />
+    <Compile Include="Models\DocumentAttributes.cs" />
+    <Compile Include="Models\Keyword.cs" />
+    <Compile Include="Controllers\DocumentsController.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="api\" />
+    <Folder Include="Models\" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
