@@ -19,19 +19,19 @@ namespace OnBaseDocsApi
             config.MapHttpAttributeRoutes();
             config.Routes.MapHttpRoute(
                 name: "ApiWithAction",
-                routeTemplate: "api/{controller}/{docId}/{action}",
-                defaults: new { docId = RouteParameter.Optional },
-                constraints: new { docId = numeric }
+                routeTemplate: "api/v1/{controller}/{id}/{action}",
+                defaults: new { id = RouteParameter.Optional },
+                constraints: new { id = numeric }
             );
             config.Routes.MapHttpRoute(
                 name: "ApiNoAction",
-                routeTemplate: "api/{controller}/{docId}",
-                defaults: new { action = "", docId = RouteParameter.Optional },
-                constraints: new { docId = numeric }
+                routeTemplate: "api/v1/{controller}/{id}",
+                defaults: new { action = "", id = RouteParameter.Optional },
+                constraints: new { id = numeric }
             );
             config.Routes.MapHttpRoute(
                 name: "Default",
-                routeTemplate: "api/{controller}"
+                routeTemplate: "api/v1/{controller}"
             );
         }
     }
