@@ -53,6 +53,7 @@ namespace OnBaseDocsApi
             Config = new ApiConfig
             {
 <<<<<<< HEAD
+<<<<<<< HEAD
                 ApiBasePath = config.Value<string>("apiBasePath"),
                 ApiHost = config.Value<string>("apiHost"),
                 ServiceUrl = config.Value<string>("serviceUrl"),
@@ -72,6 +73,9 @@ namespace OnBaseDocsApi
 >>>>>>> Adding support for document upload.
 =======
                 ApiUri = config["config"].Value<string>("apiUri"),
+=======
+                ApiUri = config["config"].Value<string>("apiBasePath"),
+>>>>>>> Fixing error in config loading.
                 ApiHost = config["config"].Value<string>("apiHost"),
                 ServiceUrl = config["config"].Value<string>("serviceUrl"),
                 DataSource = config["config"].Value<string>("dataSource"),
