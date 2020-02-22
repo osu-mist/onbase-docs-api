@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using System;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,13 @@ using Hyland.Types;
 using Hyland.Unity;
 using Newtonsoft.Json.Linq;
 >>>>>>> Adding support for document upload.
+=======
+﻿using System;
+using System.Linq;
+using System.Web.Http;
+using Hyland.Types;
+using Hyland.Unity;
+>>>>>>> Adding get document by id.
 using OnBaseDocsApi.Models;
 
 using Keyword = OnBaseDocsApi.Models.Keyword;
@@ -26,7 +34,11 @@ namespace OnBaseDocsApi.Controllers
     {
         [HttpGet]
         [ActionName("")]
+<<<<<<< HEAD
         public IHttpActionResult Get(long id)
+=======
+        public IHttpActionResult Get(int id)
+>>>>>>> Adding get document by id.
         {
             return TryHandleDocRequest(id, (_, doc) =>
             {
@@ -34,6 +46,7 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
+<<<<<<< HEAD
         [HttpGet]
         [ActionName("File")]
         public IHttpActionResult GetFile(long id)
@@ -222,6 +235,9 @@ namespace OnBaseDocsApi.Controllers
 
         IHttpActionResult TryHandleDocRequest(long id,
             Func<Application, Document, IHttpActionResult> handler)
+=======
+        IHttpActionResult TryHandleDocRequest(int id, Func<Application, Document, IHttpActionResult> handler)
+>>>>>>> Adding get document by id.
         {
             return TryHandleRequest((app) =>
             {
@@ -241,7 +257,11 @@ namespace OnBaseDocsApi.Controllers
 
             try
             {
+<<<<<<< HEAD
                 var creds = Global.Profiles.GetProfile(profile);
+=======
+                var creds = Global.GetProfile(profile);
+>>>>>>> Adding get document by id.
                 if (creds == null)
                     return InternalErrorResult($"The profile '{profile}' is not valid.");
 
@@ -289,7 +309,11 @@ namespace OnBaseDocsApi.Controllers
                 },
                 Links = new DataLinks
                 {
+<<<<<<< HEAD
                     Self = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}",
+=======
+                    Self = $"{config.ApiHost}/{config.ApiUri}/{doc.ID}",
+>>>>>>> Adding get document by id.
                 }
             });
         }

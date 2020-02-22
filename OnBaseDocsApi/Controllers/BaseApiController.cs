@@ -6,6 +6,7 @@ namespace OnBaseDocsApi.Controllers
 {
     public abstract class BaseApiController : ApiController
     {
+<<<<<<< HEAD
         protected IHttpActionResult ConflictResult(string detail)
         {
             return ErrorResult(HttpStatusCode.Conflict, "Conflict request", detail);
@@ -16,6 +17,8 @@ namespace OnBaseDocsApi.Controllers
             return ErrorResult(HttpStatusCode.BadRequest, "Bad request", detail);
         }
 
+=======
+>>>>>>> Adding get document by id.
         protected IHttpActionResult NotFoundResult(string title, string detail)
         {
             return ErrorResult(HttpStatusCode.NotFound, title, detail);
