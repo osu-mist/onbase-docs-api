@@ -21,6 +21,7 @@ using Hyland.Types;
 using Hyland.Unity;
 using System.Linq;
 =======
+<<<<<<< HEAD
 using Hyland.Types;
 using Hyland.Unity;
 using Newtonsoft.Json.Linq;
@@ -50,6 +51,18 @@ using Newtonsoft.Json;
 >>>>>>> Addressing code review comments.
 using Newtonsoft.Json.Linq;
 >>>>>>> Adding support for document upload.
+=======
+﻿using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Web.Http;
+using Hyland.Types;
+using Hyland.Unity;
+using System.Linq;
+>>>>>>> Addingget document content by id.
+>>>>>>> Addingget document content by id.
 using OnBaseDocsApi.Models;
 
 using Keyword = OnBaseDocsApi.Models.Keyword;
@@ -84,8 +97,10 @@ namespace OnBaseDocsApi.Controllers
 <<<<<<< HEAD
         [HttpGet]
         [ActionName("File")]
+<<<<<<< HEAD
         public IHttpActionResult GetFile(long id)
 =======
+<<<<<<< HEAD
         [HttpGet]
         [ActionName("File")]
 <<<<<<< HEAD
@@ -98,6 +113,10 @@ namespace OnBaseDocsApi.Controllers
 =======
         public IHttpActionResult GetFile(long id)
 >>>>>>> Updating doc ID to long.
+=======
+        public IHttpActionResult GetFile(int id)
+>>>>>>> Addingget document content by id.
+>>>>>>> Addingget document content by id.
         {
             return TryHandleDocRequest(id, (app, doc) =>
             {
@@ -128,10 +147,13 @@ namespace OnBaseDocsApi.Controllers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> Adding support for document upload.
 =======
 >>>>>>> Adding support for document upload.
+=======
+>>>>>>> Addingget document content by id.
         [HttpPost]
         [ActionName("")]
         public async Task<IHttpActionResult> Post()
@@ -387,6 +409,7 @@ namespace OnBaseDocsApi.Controllers
         IHttpActionResult TryHandleDocRequest(long id,
             Func<Application, Document, IHttpActionResult> handler)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> Addingget document content by id.
         IHttpActionResult TryHandleDocRequest(int id, Func<Application, Document, IHttpActionResult> handler)
@@ -405,6 +428,10 @@ namespace OnBaseDocsApi.Controllers
         IHttpActionResult TryHandleDocRequest(int id,
             Func<Application, Document, IHttpActionResult> handler)
 >>>>>>> Adding support for document upload.
+=======
+        IHttpActionResult TryHandleDocRequest(int id, Func<Application, Document, IHttpActionResult> handler)
+>>>>>>> Addingget document content by id.
+>>>>>>> Addingget document content by id.
         {
             return TryHandleRequest((app) =>
             {
