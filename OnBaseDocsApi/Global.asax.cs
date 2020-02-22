@@ -34,7 +34,7 @@ namespace OnBaseDocsApi
 
             Config = new ApiConfig
             {
-                ApiUri = config["config"].Value<string>("apiUri"),
+                ApiUri = config["config"].Value<string>("apiBasePath"),
                 ApiHost = config["config"].Value<string>("apiHost"),
                 ServiceUrl = config["config"].Value<string>("serviceUrl"),
                 DataSource = config["config"].Value<string>("dataSource"),
