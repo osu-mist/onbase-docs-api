@@ -19,11 +19,18 @@ using Newtonsoft.Json.Linq;
 >>>>>>> Adding support for document upload.
 =======
 ﻿using System;
-using System.Linq;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Web.Http;
 using Hyland.Types;
 using Hyland.Unity;
+<<<<<<< HEAD
 >>>>>>> Adding get document by id.
+=======
+using System.Linq;
+>>>>>>> Addingget document content by id.
 using OnBaseDocsApi.Models;
 
 using Keyword = OnBaseDocsApi.Models.Keyword;
@@ -47,9 +54,15 @@ namespace OnBaseDocsApi.Controllers
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         [HttpGet]
         [ActionName("File")]
         public IHttpActionResult GetFile(long id)
+=======
+        [HttpGet]
+        [ActionName("File")]
+        public IHttpActionResult GetFile(int id)
+>>>>>>> Addingget document content by id.
         {
             return TryHandleDocRequest(id, (app, doc) =>
             {
@@ -77,6 +90,7 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
+<<<<<<< HEAD
         [HttpPost]
         [ActionName("")]
         public async Task<IHttpActionResult> Post()
@@ -236,6 +250,8 @@ namespace OnBaseDocsApi.Controllers
         IHttpActionResult TryHandleDocRequest(long id,
             Func<Application, Document, IHttpActionResult> handler)
 =======
+=======
+>>>>>>> Addingget document content by id.
         IHttpActionResult TryHandleDocRequest(int id, Func<Application, Document, IHttpActionResult> handler)
 >>>>>>> Adding get document by id.
         {
