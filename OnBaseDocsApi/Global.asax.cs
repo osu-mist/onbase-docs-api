@@ -28,13 +28,19 @@ namespace OnBaseDocsApi
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Fixing error in config loading.
             // Load api config
             Config = new ApiConfig("api-config.json");
             // Load profiles
             Profiles = new Profiles("profiles.json");
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> Adding get document by id.
+=======
+>>>>>>> Fixing error in config loading.
             // Load the api config.
             LoadConfig();
         }
@@ -52,6 +58,7 @@ namespace OnBaseDocsApi
 
             Config = new ApiConfig
             {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -101,6 +108,28 @@ namespace OnBaseDocsApi
                 };
             }
 >>>>>>> Adding get document by id.
+=======
+                ApiUri = config["config"].Value<string>("apiBasePath"),
+                ApiHost = config["config"].Value<string>("apiHost"),
+                ServiceUrl = config["config"].Value<string>("serviceUrl"),
+                DataSource = config["config"].Value<string>("dataSource"),
+            };
+            Profiles = new Dictionary<string, Credentials>();
+            foreach (JObject profile in config["profiles"])
+            {
+                // We only support one set of credentials per profile.
+                var prop = profile.Properties().FirstOrDefault();
+                if (prop != null)
+                {
+                    Profiles[prop.Name] = new Credentials
+                    {
+                        Username = prop.Value.Value<string>("username"),
+                        Password = prop.Value.Value<string>("password")
+                    };
+                }
+            }
+>>>>>>> Fixing error in config loading.
+>>>>>>> Fixing error in config loading.
         }
     }
 }
