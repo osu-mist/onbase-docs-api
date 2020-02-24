@@ -40,13 +40,18 @@ namespace OnBaseDocsApi
                 DataSource = config.Value<string>("dataSource"),
             };
             Profiles = new Dictionary<string, Credentials>();
-            foreach (var prop in (config["profiles"] as JObject).Properties())
+            foreach (JObject profile in config["profiles"])
             {
-                Profiles[prop.Name] = new Credentials
+                // We only support one set of credentials per profile.
+                var prop = profile.Properties().FirstOrDefault();
+                if (prop != null)
                 {
-                    Username = prop.Value.Value<string>("username"),
-                    Password = prop.Value.Value<string>("password")
-                };
+                    Profiles[prop.Name] = new Credentials
+                    {
+                        Username = prop.Value.Value<string>("username"),
+                        Password = prop.Value.Value<string>("password")
+                    };
+                }
             }
         }
     }
