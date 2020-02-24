@@ -105,6 +105,8 @@
   <ItemGroup>
     <None Include="Libs\Hyland.Types.dll" />
     <None Include="Libs\Hyland.Unity.dll" />
+    <None Include="api-config-example.json" />
+    <None Include="api-config.json" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
