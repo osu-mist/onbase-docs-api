@@ -34,10 +34,10 @@ namespace OnBaseDocsApi
 
             Config = new ApiConfig
             {
-                ApiUri = config["config"].Value<string>("apiBasePath"),
-                ApiHost = config["config"].Value<string>("apiHost"),
-                ServiceUrl = config["config"].Value<string>("serviceUrl"),
-                DataSource = config["config"].Value<string>("dataSource"),
+                ApiBasePath = config.Value<string>("apiBasePath"),
+                ApiHost = config.Value<string>("apiHost"),
+                ServiceUrl = config.Value<string>("serviceUrl"),
+                DataSource = config.Value<string>("dataSource"),
             };
             Profiles = new Dictionary<string, Credentials>();
             foreach (JObject profile in config["profiles"])
