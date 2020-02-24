@@ -123,7 +123,7 @@ namespace OnBaseDocsApi.Controllers
                 },
                 Links = new DataLinks
                 {
-                    Self = $"{config.ApiHost}/{config.ApiUri}/{doc.ID}",
+                    Self = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}",
                 }
             });
         }
