@@ -54,10 +54,14 @@ namespace OnBaseDocsApi
             {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Fixing a config read bug.
                 ApiBasePath = config.Value<string>("apiBasePath"),
                 ApiHost = config.Value<string>("apiHost"),
                 ServiceUrl = config.Value<string>("serviceUrl"),
                 DataSource = config.Value<string>("dataSource"),
+<<<<<<< HEAD
                 DocIndexKeyName = config.Value<string>("docIndexKeyName"),
                 StagingDocType = config.Value<string>("stagingDocType"),
             };
@@ -79,6 +83,8 @@ namespace OnBaseDocsApi
                 ApiHost = config["config"].Value<string>("apiHost"),
                 ServiceUrl = config["config"].Value<string>("serviceUrl"),
                 DataSource = config["config"].Value<string>("dataSource"),
+=======
+>>>>>>> Fixing a config read bug.
             };
             Profiles = new Dictionary<string, Credentials>();
             foreach (JObject profile in config["profiles"])

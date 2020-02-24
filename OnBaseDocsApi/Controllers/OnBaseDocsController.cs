@@ -326,10 +326,14 @@ namespace OnBaseDocsApi.Controllers
                 Links = new DataLinks
                 {
 <<<<<<< HEAD
+<<<<<<< HEAD
                     Self = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}",
 =======
                     Self = $"{config.ApiHost}/{config.ApiUri}/{doc.ID}",
 >>>>>>> Adding get document by id.
+=======
+                    Self = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}",
+>>>>>>> Fixing a config read bug.
                 }
             });
         }

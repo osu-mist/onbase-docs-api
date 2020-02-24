@@ -11,6 +11,7 @@ namespace OnBaseDocsApi.Models
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         public string ApiBasePath { get; private set; }
         public string ApiHost { get; private set; }
         public string ServiceUrl { get; private set; }
@@ -39,6 +40,9 @@ namespace OnBaseDocsApi.Models
 >>>>>>> Adding support for document upload.
 =======
         public string ApiUri { get; set; }
+=======
+        public string ApiBasePath { get; set; }
+>>>>>>> Fixing a config read bug.
         public string ApiHost { get; set; }
         public string ServiceUrl { get; set; }
         public string DataSource { get; set; }
