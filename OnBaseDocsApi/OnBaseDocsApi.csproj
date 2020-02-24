@@ -56,6 +56,12 @@
       <HintPath>..\packages\Security.Cryptography.1.7.2\lib\net35\Security.Cryptography.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Mvc" />
+    <Reference Include="Hyland.Types">
+      <HintPath>Libs\Hyland.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="Hyland.Unity">
+      <HintPath>Libs\Hyland.Unity.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Web.config" />
@@ -70,10 +76,26 @@
     <Compile Include="Models\DocumentAttributes.cs" />
     <Compile Include="Models\Keyword.cs" />
     <Compile Include="Controllers\DocumentsController.cs" />
+    <Compile Include="Controllers\BaseApiController.cs" />
+    <Compile Include="Controllers\OnBaseDocsController.cs" />
+    <Compile Include="Models\ApiConfig.cs" />
+    <Compile Include="Models\Credentials.cs" />
+    <Compile Include="Models\DataLinks.cs" />
+    <Compile Include="Models\DataResult.cs" />
+    <Compile Include="Models\Error.cs" />
+    <Compile Include="Models\ErrorLinks.cs" />
+    <Compile Include="Models\ErrorResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Controllers\" />
+    <Folder Include="Libs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Libs\Hyland.Types.dll" />
+    <None Include="Libs\Hyland.Unity.dll" />
+    <None Include="api-config-example.json" />
+    <None Include="api-config.json" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
