@@ -1,5 +1,6 @@
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
     "serviceUrl": "https://onbase-url.com",
     "dataSource": "testDatabaseName",
     "apiBasePath": "/api/v1/onbase-docs",
@@ -7,6 +8,8 @@
     "docIndexKeyName": "Index Key Sample",
     "stagingDocType": "Staging Sample"
 =======
+=======
+>>>>>>> Adding support for document upload.
   "serviceUrl": "https://onbase-url.com",
   "dataSource": "testDatabaseName",
   "apiBasePath": "/api/v1/onbase-docs",
@@ -23,5 +26,8 @@
       "password": "pass2"
     }
   }
+<<<<<<< HEAD
+>>>>>>> Adding support for document upload.
+=======
 >>>>>>> Adding support for document upload.
 }

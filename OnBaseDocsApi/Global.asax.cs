@@ -62,6 +62,7 @@ namespace OnBaseDocsApi
                 ServiceUrl = config.Value<string>("serviceUrl"),
                 DataSource = config.Value<string>("dataSource"),
 <<<<<<< HEAD
+<<<<<<< HEAD
                 DocIndexKeyName = config.Value<string>("docIndexKeyName"),
                 StagingDocType = config.Value<string>("stagingDocType"),
             };
@@ -85,6 +86,10 @@ namespace OnBaseDocsApi
                 DataSource = config["config"].Value<string>("dataSource"),
 =======
 >>>>>>> Fixing a config read bug.
+=======
+                DocIndexKeyName = config.Value<string>("docIndexKeyName"),
+                StagingDocType = config.Value<string>("stagingDocType"),
+>>>>>>> Adding support for document upload.
             };
             Profiles = new Dictionary<string, Credentials>();
             foreach (var prop in (config["profiles"] as JObject).Properties())

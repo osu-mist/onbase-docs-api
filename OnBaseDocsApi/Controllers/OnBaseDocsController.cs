@@ -20,17 +20,24 @@ using Newtonsoft.Json.Linq;
 =======
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Threading.Tasks;
 using System.Web.Http;
 using Hyland.Types;
 using Hyland.Unity;
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> Adding get document by id.
 =======
 using System.Linq;
 >>>>>>> Addingget document content by id.
+=======
+using Newtonsoft.Json.Linq;
+>>>>>>> Adding support for document upload.
 using OnBaseDocsApi.Models;
 
 using Keyword = OnBaseDocsApi.Models.Keyword;
@@ -91,6 +98,9 @@ namespace OnBaseDocsApi.Controllers
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Adding support for document upload.
         [HttpPost]
         [ActionName("")]
         public async Task<IHttpActionResult> Post()
@@ -233,8 +243,14 @@ namespace OnBaseDocsApi.Controllers
 
         void MoveDocumentToWorkflow(long docId, string documentType)
         {
+<<<<<<< HEAD
             TryHandleDocRequest(docId, (app, doc) =>
             {
+=======
+            TryHandleRequest(app =>
+            {
+                var doc = app.Core.GetDocumentByID(docId);
+>>>>>>> Adding support for document upload.
                 var docType = app.Core.DocumentTypes.Find(documentType);
 
                 // First index the document so that the autofill keywords are populated
@@ -247,6 +263,7 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
+<<<<<<< HEAD
         IHttpActionResult TryHandleDocRequest(long id,
             Func<Application, Document, IHttpActionResult> handler)
 =======
@@ -254,6 +271,10 @@ namespace OnBaseDocsApi.Controllers
 >>>>>>> Addingget document content by id.
         IHttpActionResult TryHandleDocRequest(int id, Func<Application, Document, IHttpActionResult> handler)
 >>>>>>> Adding get document by id.
+=======
+        IHttpActionResult TryHandleDocRequest(int id,
+            Func<Application, Document, IHttpActionResult> handler)
+>>>>>>> Adding support for document upload.
         {
             return TryHandleRequest((app) =>
             {

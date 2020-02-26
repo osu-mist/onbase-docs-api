@@ -7,6 +7,9 @@ namespace OnBaseDocsApi.Controllers
     public abstract class BaseApiController : ApiController
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Adding support for document upload.
         protected IHttpActionResult ConflictResult(string detail)
         {
             return ErrorResult(HttpStatusCode.Conflict, "Conflict request", detail);
@@ -17,8 +20,11 @@ namespace OnBaseDocsApi.Controllers
             return ErrorResult(HttpStatusCode.BadRequest, "Bad request", detail);
         }
 
+<<<<<<< HEAD
 =======
 >>>>>>> Adding get document by id.
+=======
+>>>>>>> Adding support for document upload.
         protected IHttpActionResult NotFoundResult(string title, string detail)
         {
             return ErrorResult(HttpStatusCode.NotFound, title, detail);

@@ -89,6 +89,7 @@
     <Compile Include="Models\ErrorResult.cs" />
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <Compile Include="Models\Profiles.cs" />
 =======
     <Compile Include="Models\DocumentPostAttributes.cs" />
@@ -96,6 +97,10 @@
 >>>>>>> Adding support for document upload.
 =======
 >>>>>>> Adding get document by id.
+=======
+    <Compile Include="Models\DocumentPostAttributes.cs" />
+    <Compile Include="Models\DocumentCreateAttributes.cs" />
+>>>>>>> Adding support for document upload.
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
