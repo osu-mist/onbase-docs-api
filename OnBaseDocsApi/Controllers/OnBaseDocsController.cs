@@ -26,7 +26,7 @@ namespace OnBaseDocsApi.Controllers
     {
         [HttpGet]
         [ActionName("")]
-        public IHttpActionResult Get(int id)
+        public IHttpActionResult Get(long id)
         {
             return TryHandleDocRequest(id, (_, doc) =>
             {
@@ -36,7 +36,7 @@ namespace OnBaseDocsApi.Controllers
 
         [HttpGet]
         [ActionName("File")]
-        public IHttpActionResult GetFile(int id)
+        public IHttpActionResult GetFile(long id)
         {
             return TryHandleDocRequest(id, (app, doc) =>
             {
@@ -206,9 +206,8 @@ namespace OnBaseDocsApi.Controllers
 
         void MoveDocumentToWorkflow(long docId, string documentType)
         {
-            TryHandleRequest(app =>
+            TryHandleDocRequest(docId, (app, doc) =>
             {
-                var doc = app.Core.GetDocumentByID(docId);
                 var docType = app.Core.DocumentTypes.Find(documentType);
 
                 // First index the document so that the autofill keywords are populated
@@ -221,7 +220,7 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
-        IHttpActionResult TryHandleDocRequest(int id,
+        IHttpActionResult TryHandleDocRequest(long id,
             Func<Application, Document, IHttpActionResult> handler)
         {
             return TryHandleRequest((app) =>
