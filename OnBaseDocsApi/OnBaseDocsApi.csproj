@@ -77,6 +77,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Models\DocumentAttributes.cs" />
     <Compile Include="Models\Keyword.cs" />
+    <Compile Include="Controllers\DocumentsController.cs" />
     <Compile Include="Controllers\BaseApiController.cs" />
     <Compile Include="Controllers\OnBaseDocsController.cs" />
     <Compile Include="Models\ApiConfig.cs" />
@@ -86,29 +87,9 @@
     <Compile Include="Models\Error.cs" />
     <Compile Include="Models\ErrorLinks.cs" />
     <Compile Include="Models\ErrorResult.cs" />
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     <Compile Include="Models\Profiles.cs" />
-<<<<<<< HEAD
-=======
     <Compile Include="Models\DocumentPostAttributes.cs" />
     <Compile Include="Models\DocumentCreateAttributes.cs" />
-<<<<<<< HEAD
->>>>>>> Adding support for document upload.
-=======
->>>>>>> Adding get document by id.
-=======
-    <Compile Include="Models\DocumentPostAttributes.cs" />
-    <Compile Include="Models\DocumentCreateAttributes.cs" />
->>>>>>> Adding support for document upload.
-=======
-    <Compile Include="Models\DataResource.cs" />
->>>>>>> Addressing code review comments.
-=======
-    <Compile Include="Models\DocumentPostAttributes.cs" />
-    <Compile Include="Models\DocumentCreateAttributes.cs" />
->>>>>>> Adding support for document upload.
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
