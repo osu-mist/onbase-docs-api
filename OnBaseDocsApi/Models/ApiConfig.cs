@@ -5,6 +5,7 @@ namespace OnBaseDocsApi.Models
 {
     public class ApiConfig
     {
+<<<<<<< HEAD
         public string ApiBasePath { get; private set; }
         public string ApiHost { get; private set; }
         public string ServiceUrl { get; private set; }
@@ -23,5 +24,13 @@ namespace OnBaseDocsApi.Models
             DocIndexKeyName = config.Value<string>("docIndexKeyName");
             StagingDocType = config.Value<string>("stagingDocType");
         }
+=======
+        public string ApiBasePath { get; set; }
+        public string ApiHost { get; set; }
+        public string ServiceUrl { get; set; }
+        public string DataSource { get; set; }
+        public string DocIndexKeyName { get; set; }
+        public string StagingDocType { get; set; }
+>>>>>>> Adding support for document upload.
     }
 }

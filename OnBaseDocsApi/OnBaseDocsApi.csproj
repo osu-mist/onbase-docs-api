@@ -18,12 +18,14 @@
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>bin</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -85,7 +87,12 @@
     <Compile Include="Models\Error.cs" />
     <Compile Include="Models\ErrorLinks.cs" />
     <Compile Include="Models\ErrorResult.cs" />
+<<<<<<< HEAD
     <Compile Include="Models\Profiles.cs" />
+=======
+    <Compile Include="Models\DocumentPostAttributes.cs" />
+    <Compile Include="Models\DocumentCreateAttributes.cs" />
+>>>>>>> Adding support for document upload.
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
