@@ -62,10 +62,14 @@ namespace OnBaseDocsApi.Controllers
         [ActionName("")]
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         public IHttpActionResult Get(long id)
 =======
         public IHttpActionResult Get(int id)
 >>>>>>> Adding get document by id.
+=======
+        public IHttpActionResult Get(long id)
+>>>>>>> Updating doc ID to long.
 =======
         public IHttpActionResult Get(long id)
 >>>>>>> Updating doc ID to long.
@@ -85,8 +89,12 @@ namespace OnBaseDocsApi.Controllers
         [HttpGet]
         [ActionName("File")]
 <<<<<<< HEAD
+<<<<<<< HEAD
         public IHttpActionResult GetFile(int id)
 >>>>>>> Addingget document content by id.
+=======
+        public IHttpActionResult GetFile(long id)
+>>>>>>> Updating doc ID to long.
 =======
         public IHttpActionResult GetFile(long id)
 >>>>>>> Updating doc ID to long.
@@ -357,9 +365,8 @@ namespace OnBaseDocsApi.Controllers
 =======
         void MoveDocumentToWorkflow(long docId, string documentType)
         {
-            TryHandleRequest(app =>
+            TryHandleDocRequest(docId, (app, doc) =>
             {
-                var doc = app.Core.GetDocumentByID(docId);
                 var docType = app.Core.DocumentTypes.Find(documentType);
 
 >>>>>>> Adding support for document upload.
@@ -376,6 +383,7 @@ namespace OnBaseDocsApi.Controllers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         IHttpActionResult TryHandleDocRequest(long id,
             Func<Application, Document, IHttpActionResult> handler)
 =======
@@ -385,6 +393,9 @@ namespace OnBaseDocsApi.Controllers
 >>>>>>> Adding get document by id.
 =======
         IHttpActionResult TryHandleDocRequest(int id,
+=======
+        IHttpActionResult TryHandleDocRequest(long id,
+>>>>>>> Updating doc ID to long.
 =======
         IHttpActionResult TryHandleDocRequest(long id,
 >>>>>>> Updating doc ID to long.
