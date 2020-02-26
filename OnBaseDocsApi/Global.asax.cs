@@ -38,6 +38,8 @@ namespace OnBaseDocsApi
                 ApiHost = config.Value<string>("apiHost"),
                 ServiceUrl = config.Value<string>("serviceUrl"),
                 DataSource = config.Value<string>("dataSource"),
+                DocIndexKeyName = config.Value<string>("docIndexKeyName"),
+                StagingDocType = config.Value<string>("stagingDocType"),
             };
             Profiles = new Dictionary<string, Credentials>();
             foreach (var prop in (config["profiles"] as JObject).Properties())

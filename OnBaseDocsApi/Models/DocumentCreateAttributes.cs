@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 
 namespace OnBaseDocsApi.Models
 {
-    public class DocumentPostAttributes
+    public class DocumentCreateAttributes : DocumentPostAttributes
     {
-        public string DocumentType { get; set; }
-        public string Comment { get; set; }
-        public string Name { get; set; }
-        public string IndexKey { get; set; }
-        public IEnumerable<Keyword> Keywords { get; set; }
+        public string Ext { get; set; }
+        public Stream Stream { get; set; }
+        public bool ToStaging { get; set; }
     }
 }
