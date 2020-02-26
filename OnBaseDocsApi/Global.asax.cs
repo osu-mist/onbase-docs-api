@@ -13,44 +13,10 @@ namespace OnBaseDocsApi
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);
 
-<<<<<<< HEAD
             // Load api config
             Config = new ApiConfig("api-config.json");
             // Load profiles
             Profiles = new Profiles("profiles.json");
-=======
-            // Load the api config.
-            LoadConfig();
-        }
-
-        public static Credentials GetProfile(string profileName)
-        {
-            if (!Profiles.ContainsKey(profileName))
-                return null;
-            return Profiles[profileName];
-        }
-
-        void LoadConfig()
-        {
-            var config = JObject.Parse(File.ReadAllText("api-config.json"));
-
-            Config = new ApiConfig
-            {
-                ApiBasePath = config.Value<string>("apiBasePath"),
-                ApiHost = config.Value<string>("apiHost"),
-                ServiceUrl = config.Value<string>("serviceUrl"),
-                DataSource = config.Value<string>("dataSource"),
-            };
-            Profiles = new Dictionary<string, Credentials>();
-            foreach (var prop in (config["profiles"] as JObject).Properties())
-            {
-                Profiles[prop.Name] = new Credentials
-                {
-                    Username = prop.Value.Value<string>("username"),
-                    Password = prop.Value.Value<string>("password")
-                };
-            }
->>>>>>> Adding JSON config to VS solution.
         }
     }
 }
