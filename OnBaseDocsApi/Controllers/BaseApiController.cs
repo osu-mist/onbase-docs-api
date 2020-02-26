@@ -8,6 +8,9 @@ namespace OnBaseDocsApi.Controllers
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Adding support for document upload.
 =======
 >>>>>>> Adding support for document upload.
         protected IHttpActionResult ConflictResult(string detail)
@@ -21,8 +24,11 @@ namespace OnBaseDocsApi.Controllers
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> Adding get document by id.
+=======
+>>>>>>> Adding support for document upload.
 =======
 >>>>>>> Adding support for document upload.
         protected IHttpActionResult NotFoundResult(string title, string detail)

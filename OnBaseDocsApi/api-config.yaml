@@ -1,0 +1,6 @@
+apiBasePath: api/v1/onbasedocs
+apiHost: https://api.oregonstate.edu
+dataSource: obOregonStateUT1
+serviceUrl: https://oregonstate.onbaseonline.com/oregonstateUT1/app/1800appserverAPI
+docIndexKeyName: DOC - Index Key
+stagingDocType: TEST - API Staging

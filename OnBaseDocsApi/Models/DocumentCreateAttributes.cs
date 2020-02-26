@@ -2,6 +2,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using System.IO;
 
 namespace OnBaseDocsApi.Models
@@ -24,11 +25,15 @@ namespace OnBaseDocsApi.Models
 <<<<<<< HEAD
 =======
 using System.Collections.Generic;
+=======
+using System.IO;
+>>>>>>> Adding support for document upload.
 
 namespace OnBaseDocsApi.Models
 {
-    public class DocumentPostAttributes
+    public class DocumentCreateAttributes : DocumentPostAttributes
     {
+<<<<<<< HEAD
 >>>>>>> Adding support for document upload.
         public string DocumentType { get; set; }
         public string Comment { get; set; }
@@ -43,6 +48,11 @@ namespace OnBaseDocsApi.Models
         public bool ToStaging { get; set; }
 >>>>>>> Adding support for document upload.
 =======
+>>>>>>> Adding support for document upload.
+=======
+        public string Ext { get; set; }
+        public Stream Stream { get; set; }
+        public bool ToStaging { get; set; }
 >>>>>>> Adding support for document upload.
     }
 }

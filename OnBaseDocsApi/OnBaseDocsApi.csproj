@@ -90,6 +90,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
     <Compile Include="Models\Profiles.cs" />
+<<<<<<< HEAD
 =======
     <Compile Include="Models\DocumentPostAttributes.cs" />
     <Compile Include="Models\DocumentCreateAttributes.cs" />
@@ -104,6 +105,10 @@
 =======
     <Compile Include="Models\DataResource.cs" />
 >>>>>>> Addressing code review comments.
+=======
+    <Compile Include="Models\DocumentPostAttributes.cs" />
+    <Compile Include="Models\DocumentCreateAttributes.cs" />
+>>>>>>> Adding support for document upload.
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

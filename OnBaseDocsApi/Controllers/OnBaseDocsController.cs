@@ -1,12 +1,20 @@
 <<<<<<< HEAD
 using System;
 using System.IO;
+<<<<<<< HEAD
 using System.Linq;
+=======
+using System.Linq;
+>>>>>>> Adding support for document upload.
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+<<<<<<< HEAD
 using System.Threading.Tasks;
+=======
+using System.Threading.Tasks;
+>>>>>>> Adding support for document upload.
 using System.Web.Http;
 <<<<<<< HEAD
 using Hyland.Types;
@@ -111,6 +119,9 @@ namespace OnBaseDocsApi.Controllers
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Adding support for document upload.
 =======
 >>>>>>> Adding support for document upload.
         [HttpPost]
@@ -134,6 +145,7 @@ namespace OnBaseDocsApi.Controllers
 
                 foreach (HttpContent content in provider.Contents)
                 {
+<<<<<<< HEAD
                     // The Content-Disposition header is required.
                     if (content.Headers.ContentDisposition == null)
                         return BadRequestResult($"A Content-Disposition header is required.");
@@ -157,11 +169,31 @@ namespace OnBaseDocsApi.Controllers
                         // Only allow one JSON attributes.
                         if (docAttr != null)
                             return BadRequestResult("More than one document attributes was included.");
+=======
+                    if (content.Headers.Contains("Content-Type")
+                        && content.Headers.Contains("Content-Disposition"))
+                    {
+                        // The content is a file.
+                        if ((docStream != null) || !string.IsNullOrEmpty(docExt))
+                            return ConflictResult("More than one document content was included.");
+
+                        var dispo = new ContentDisposition(
+                            content.Headers.GetValues("Content-Disposition").First());
+                        docStream = content.ReadAsStreamAsync().Result;
+                        docExt = Path.GetExtension(dispo.FileName).TrimStart('.');
+                    }
+                    else
+                    {
+                        // The content is JSON.
+                        if (docAttr != null)
+                            return ConflictResult("More than one document attributes was included.");
+>>>>>>> Adding support for document upload.
 
                         docAttr = JObject
                             .Parse(content.ReadAsStringAsync().Result)
                             .ToObject<DocumentPostAttributes>();
                     }
+<<<<<<< HEAD
                     else
                     {
                         return BadRequestResult($"Unexpected Content-Disposition header of name '{dispoName}'.");
@@ -176,15 +208,25 @@ namespace OnBaseDocsApi.Controllers
             {
                 return BadRequestResult(ex.Message);
             }
+=======
+                }
+            }
+>>>>>>> Adding support for document upload.
             catch (Exception ex)
             {
                 return InternalErrorResult(ex.Message);
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExt))
+<<<<<<< HEAD
                 return BadRequestResult("The required parameter 'file' is missing.");
             if (docAttr == null)
                 return BadRequestResult("The required parameter 'attributes' is missing.");
+=======
+                return ConflictResult("The required parameter document content is missing.");
+            if (docAttr == null)
+                return ConflictResult("The required parameter document attributes are missing.");
+>>>>>>> Adding support for document upload.
             if (string.IsNullOrWhiteSpace(docAttr.IndexKey))
                 return BadRequestResult("The required parameter 'IndexKey' is empty.");
             if (string.IsNullOrWhiteSpace(docAttr.DocumentType))
@@ -196,6 +238,7 @@ namespace OnBaseDocsApi.Controllers
                 // so that we can kick off a re-index to generate the autofill keywords.
                 bool toStaging = (docAttr.Keywords == null) || !docAttr.Keywords.Any();
 
+<<<<<<< HEAD
                 // When going to staging, confirm that the final doc type is actually valid.
                 DocumentType finalDocType = null;
                 if (toStaging)
@@ -205,6 +248,8 @@ namespace OnBaseDocsApi.Controllers
                         return BadRequestResult($"The DocumentType '{docAttr.DocumentType}' could not be found.");
                 }
 
+=======
+>>>>>>> Adding support for document upload.
                 var createAttr = new DocumentCreateAttributes
                 {
                     DocumentType = toStaging ? Global.Config.StagingDocType : docAttr.DocumentType,
@@ -226,11 +271,19 @@ namespace OnBaseDocsApi.Controllers
                     var docId = doc.ID;
                     Task.Run(() =>
                     {
+<<<<<<< HEAD
                         MoveDocumentToWorkflow(docId, finalDocType);
                     });
                 }
 
                 return DocumentResult(doc, true);
+=======
+                        MoveDocumentToWorkflow(docId, docAttr.DocumentType);
+                    });
+                }
+
+                return DocumentResult(doc);
+>>>>>>> Adding support for document upload.
             });
         }
 
@@ -280,6 +333,7 @@ namespace OnBaseDocsApi.Controllers
             return null;
         }
 
+<<<<<<< HEAD
         void MoveDocumentToWorkflow(long docId, DocumentType docType)
         {
 <<<<<<< HEAD
@@ -300,6 +354,15 @@ namespace OnBaseDocsApi.Controllers
 
 =======
 >>>>>>> Addressing another code review comment.
+=======
+        void MoveDocumentToWorkflow(long docId, string documentType)
+        {
+            TryHandleRequest(app =>
+            {
+                var doc = app.Core.GetDocumentByID(docId);
+                var docType = app.Core.DocumentTypes.Find(documentType);
+
+>>>>>>> Adding support for document upload.
                 // First index the document so that the autofill keywords are populated
                 // then add the document to the workflow.
                 var reindexProps = app.Core.Storage.CreateReindexProperties(doc, docType);
@@ -310,6 +373,7 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         IHttpActionResult TryHandleDocRequest(long id,
@@ -324,6 +388,10 @@ namespace OnBaseDocsApi.Controllers
 =======
         IHttpActionResult TryHandleDocRequest(long id,
 >>>>>>> Updating doc ID to long.
+            Func<Application, Document, IHttpActionResult> handler)
+>>>>>>> Adding support for document upload.
+=======
+        IHttpActionResult TryHandleDocRequest(int id,
             Func<Application, Document, IHttpActionResult> handler)
 >>>>>>> Adding support for document upload.
         {
