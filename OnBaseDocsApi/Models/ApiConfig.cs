@@ -8,5 +8,7 @@ namespace OnBaseDocsApi.Models
         public string ApiHost { get; set; }
         public string ServiceUrl { get; set; }
         public string DataSource { get; set; }
+        public string DocIndexKeyName { get; set; }
+        public string StagingDocType { get; set; }
     }
 }
