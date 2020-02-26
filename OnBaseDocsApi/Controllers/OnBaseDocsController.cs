@@ -49,10 +49,14 @@ namespace OnBaseDocsApi.Controllers
         [HttpGet]
         [ActionName("")]
 <<<<<<< HEAD
+<<<<<<< HEAD
         public IHttpActionResult Get(long id)
 =======
         public IHttpActionResult Get(int id)
 >>>>>>> Adding get document by id.
+=======
+        public IHttpActionResult Get(long id)
+>>>>>>> Updating doc ID to long.
         {
             return TryHandleDocRequest(id, (_, doc) =>
             {
@@ -68,8 +72,12 @@ namespace OnBaseDocsApi.Controllers
 =======
         [HttpGet]
         [ActionName("File")]
+<<<<<<< HEAD
         public IHttpActionResult GetFile(int id)
 >>>>>>> Addingget document content by id.
+=======
+        public IHttpActionResult GetFile(long id)
+>>>>>>> Updating doc ID to long.
         {
             return TryHandleDocRequest(id, (app, doc) =>
             {
@@ -244,6 +252,7 @@ namespace OnBaseDocsApi.Controllers
         void MoveDocumentToWorkflow(long docId, string documentType)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
             TryHandleDocRequest(docId, (app, doc) =>
             {
 =======
@@ -251,6 +260,10 @@ namespace OnBaseDocsApi.Controllers
             {
                 var doc = app.Core.GetDocumentByID(docId);
 >>>>>>> Adding support for document upload.
+=======
+            TryHandleDocRequest(docId, (app, doc) =>
+            {
+>>>>>>> Updating doc ID to long.
                 var docType = app.Core.DocumentTypes.Find(documentType);
 
                 // First index the document so that the autofill keywords are populated
@@ -264,6 +277,7 @@ namespace OnBaseDocsApi.Controllers
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         IHttpActionResult TryHandleDocRequest(long id,
             Func<Application, Document, IHttpActionResult> handler)
 =======
@@ -273,6 +287,9 @@ namespace OnBaseDocsApi.Controllers
 >>>>>>> Adding get document by id.
 =======
         IHttpActionResult TryHandleDocRequest(int id,
+=======
+        IHttpActionResult TryHandleDocRequest(long id,
+>>>>>>> Updating doc ID to long.
             Func<Application, Document, IHttpActionResult> handler)
 >>>>>>> Adding support for document upload.
         {
