@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Hyland.Types;
 using Hyland.Unity;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OnBaseDocsApi.Models;
 
@@ -79,29 +80,47 @@ namespace OnBaseDocsApi.Controllers
 
                 foreach (HttpContent content in provider.Contents)
                 {
-                    if (content.Headers.Contains("Content-Type")
-                        && content.Headers.Contains("Content-Disposition"))
+                    // The Content-Disposition header is required.
+                    if (content.Headers.ContentDisposition == null)
+                        return BadRequestResult($"A Content-Disposition header is required.");
+
+                    var dispoName = content.Headers.ContentDisposition.Name.Trim('"');
+
+                    if (dispoName == "file")
                     {
                         // The content is a file.
+                        // Only allow one content file.
                         if ((docStream != null) || !string.IsNullOrEmpty(docExt))
-                            return ConflictResult("More than one document content was included.");
+                            return BadRequestResult("More than one document content was included.");
 
-                        var dispo = new ContentDisposition(
-                            content.Headers.GetValues("Content-Disposition").First());
+                        var fileName = content.Headers.ContentDisposition.FileName.Trim('"');
                         docStream = content.ReadAsStreamAsync().Result;
-                        docExt = Path.GetExtension(dispo.FileName).TrimStart('.');
+                        docExt = Path.GetExtension(fileName).TrimStart('.');
                     }
-                    else
+                    else if (dispoName == "attributes")
                     {
                         // The content is JSON.
+                        // Only allow one JSON attributes.
                         if (docAttr != null)
-                            return ConflictResult("More than one document attributes was included.");
+                            return BadRequestResult("More than one document attributes was included.");
 
                         docAttr = JObject
                             .Parse(content.ReadAsStringAsync().Result)
                             .ToObject<DocumentPostAttributes>();
                     }
+                    else
+                    {
+                        return BadRequestResult($"Unexpected Content-Disposition header of name '{dispoName}'.");
+                    }
                 }
+            }
+            catch (JsonReaderException ex)
+            {
+                return BadRequestResult($"JSON parse error. {ex.Message}");
+            }
+            catch (IOException ex) when (ex.Message.Contains("MIME multipart message is not complete"))
+            {
+                return BadRequestResult(ex.Message);
             }
             catch (Exception ex)
             {
@@ -109,9 +128,9 @@ namespace OnBaseDocsApi.Controllers
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExt))
-                return ConflictResult("The required parameter document content is missing.");
+                return BadRequestResult("The required parameter document content is missing.");
             if (docAttr == null)
-                return ConflictResult("The required parameter document attributes are missing.");
+                return BadRequestResult("The required parameter document attributes are missing.");
             if (string.IsNullOrWhiteSpace(docAttr.IndexKey))
                 return BadRequestResult("The required parameter 'IndexKey' is empty.");
             if (string.IsNullOrWhiteSpace(docAttr.DocumentType))
@@ -268,22 +287,31 @@ namespace OnBaseDocsApi.Controllers
 
             return Ok(new DataResult<DocumentAttributes>
             {
-                Data = new DocumentAttributes
+                Data = new DataResource<DocumentAttributes>
                 {
-                    ID = doc.ID,
-                    CreatedBy = doc.CreatedBy.ID,
-                    DateStored = doc.DateStored,
-                    DocumentDate = doc.DocumentDate,
-                    Status = doc.Status.ToString(),
-                    Name = doc.Name,
-                    DocumentType = doc.DocumentType.Name,
-                    DefaultFileType = doc.DefaultFileType.Name,
-                    LatestAllowedRevisionID = doc.LatestAllowedRevisionID,
-                    Keywords = keywords,
+                    Id = doc.ID,
+                    Type = "onbaseDocument",
+                    Attributes = new DocumentAttributes
+                    {
+                        ID = doc.ID,
+                        CreatedBy = doc.CreatedBy.ID,
+                        DateStored = doc.DateStored,
+                        DocumentDate = doc.DocumentDate,
+                        Status = doc.Status.ToString(),
+                        Name = doc.Name,
+                        DocumentType = doc.DocumentType.Name,
+                        DefaultFileType = doc.DefaultFileType.Name,
+                        LatestAllowedRevisionID = doc.LatestAllowedRevisionID,
+                        Keywords = keywords,
+                    },
+                    Links = new DataLinks
+                    {
+                        Self = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}",
+                    }
                 },
                 Links = new DataLinks
                 {
-                    Self = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}",
+                    Self = $"{config.ApiHost}/{config.ApiBasePath}",
                 }
             });
         }
