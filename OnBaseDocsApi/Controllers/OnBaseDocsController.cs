@@ -1,8 +1,12 @@
 ﻿using System;
-using System.Linq;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Web.Http;
 using Hyland.Types;
 using Hyland.Unity;
+using System.Linq;
 using OnBaseDocsApi.Models;
 
 using Keyword = OnBaseDocsApi.Models.Keyword;
@@ -18,6 +22,36 @@ namespace OnBaseDocsApi.Controllers
             return TryHandleDocRequest(id, (_, doc) =>
             {
                 return DocumentResult(doc);
+            });
+        }
+
+        [HttpGet]
+        [ActionName("File")]
+        public IHttpActionResult GetFile(int id)
+        {
+            return TryHandleDocRequest(id, (app, doc) =>
+            {
+                var pdf = app.Core.Retrieval.PDF.GetDocument(
+                    doc.DefaultRenditionOfLatestRevision);
+
+                using (var stream = new MemoryStream())
+                {
+                    pdf.Stream.CopyTo(stream);
+
+                    var result = new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new ByteArrayContent(stream.GetBuffer())
+                    };
+                    result.Content.Headers.ContentDisposition =
+                        new ContentDispositionHeaderValue("inline")
+                        {
+                            FileName = $"{doc.ID}.pdf"
+                        };
+                    result.Content.Headers.ContentType =
+                        new MediaTypeHeaderValue("application/pdf");
+
+                    return ResponseMessage(result);
+                }
             });
         }
 
