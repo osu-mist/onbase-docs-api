@@ -94,6 +94,7 @@
 =======
     <Compile Include="Models\DocumentPostAttributes.cs" />
     <Compile Include="Models\DocumentCreateAttributes.cs" />
+<<<<<<< HEAD
 >>>>>>> Adding support for document upload.
 =======
 >>>>>>> Adding get document by id.
@@ -101,6 +102,9 @@
     <Compile Include="Models\DocumentPostAttributes.cs" />
     <Compile Include="Models\DocumentCreateAttributes.cs" />
 >>>>>>> Adding support for document upload.
+=======
+    <Compile Include="Models\DataResource.cs" />
+>>>>>>> Addressing code review comments.
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
