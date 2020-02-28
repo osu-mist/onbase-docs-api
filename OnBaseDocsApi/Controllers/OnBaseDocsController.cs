@@ -9,20 +9,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Hyland.Types;
 using Hyland.Unity;
-<<<<<<< HEAD
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-=======
-using System.Linq;
-=======
-using System.Threading.Tasks;
-using System.Web.Http;
-using Hyland.Types;
-using Hyland.Unity;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
->>>>>>> Adding support for document upload.
->>>>>>> Addressing code review comments.
 using OnBaseDocsApi.Models;
 
 using Keyword = OnBaseDocsApi.Models.Keyword;
@@ -140,15 +128,9 @@ namespace OnBaseDocsApi.Controllers
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExt))
-<<<<<<< HEAD
                 return BadRequestResult("The required parameter 'file' is missing.");
             if (docAttr == null)
                 return BadRequestResult("The required parameter 'attributes' is missing.");
-=======
-                return BadRequestResult("The required parameter document content is missing.");
-            if (docAttr == null)
-                return BadRequestResult("The required parameter document attributes are missing.");
->>>>>>> Addressing code review comments.
             if (string.IsNullOrWhiteSpace(docAttr.IndexKey))
                 return BadRequestResult("The required parameter 'IndexKey' is empty.");
             if (string.IsNullOrWhiteSpace(docAttr.DocumentType))
