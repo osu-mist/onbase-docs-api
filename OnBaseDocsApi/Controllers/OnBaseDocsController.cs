@@ -142,6 +142,15 @@ namespace OnBaseDocsApi.Controllers
                 // so that we can kick off a re-index to generate the autofill keywords.
                 bool toStaging = (docAttr.Keywords == null) || !docAttr.Keywords.Any();
 
+                // When going to staging, confirm that the final doc type is actually valid.
+                DocumentType finalDocType = null;
+                if (toStaging)
+                {
+                    finalDocType = app.Core.DocumentTypes.Find(docAttr.DocumentType);
+                    if (finalDocType == null)
+                        return InternalErrorResult($"The DocumentType '{docAttr.DocumentType}' could not be found.");
+                }
+
                 var createAttr = new DocumentCreateAttributes
                 {
                     DocumentType = toStaging ? Global.Config.StagingDocType : docAttr.DocumentType,
@@ -163,7 +172,7 @@ namespace OnBaseDocsApi.Controllers
                     var docId = doc.ID;
                     Task.Run(() =>
                     {
-                        MoveDocumentToWorkflow(docId, docAttr.DocumentType);
+                        MoveDocumentToWorkflow(docId, finalDocType);
                     });
                 }
 
@@ -217,12 +226,10 @@ namespace OnBaseDocsApi.Controllers
             return null;
         }
 
-        void MoveDocumentToWorkflow(long docId, string documentType)
+        void MoveDocumentToWorkflow(long docId, DocumentType docType)
         {
             TryHandleDocRequest(docId, (app, doc) =>
             {
-                var docType = app.Core.DocumentTypes.Find(documentType);
-
                 // First index the document so that the autofill keywords are populated
                 // then add the document to the workflow.
                 var reindexProps = app.Core.Storage.CreateReindexProperties(doc, docType);
