@@ -7,6 +7,7 @@ COPY . .
 RUN apt-get -y update
 RUN apt-get -y install mono-xsp4
 
-RUN msbuild OnBaseDocsApi
+RUN nuget restore
+RUN msbuild -p:Configuration=Release OnBaseDocsApi
 
 CMD cd OnBaseDocsApi && xsp4
