@@ -90,6 +90,7 @@
     <Compile Include="Models\Profiles.cs" />
     <Compile Include="Models\DocumentPostAttributes.cs" />
     <Compile Include="Models\DocumentCreateAttributes.cs" />
+    <Compile Include="Models\DataResource.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
