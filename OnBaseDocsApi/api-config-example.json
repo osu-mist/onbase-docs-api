@@ -3,14 +3,6 @@
     "dataSource": "testDatabaseName",
     "apiBasePath": "/api/v1/onbase-docs",
     "apiHost": "https://api.oregonstate.edu",
-    "profiles": {
-        "profile1": {
-            "username": "user",
-            "password": "pass"
-        },
-        "profile2": {
-            "username": "user2",
-            "password": "pass2"
-        }
-    }
+    "docIndexKeyName": "Index Key Sample",
+    "stagingDocType": "Staging Sample"
 }

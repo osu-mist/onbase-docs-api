@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -75,7 +75,7 @@ namespace OnBaseDocsApi.Controllers
 
             try
             {
-                var creds = Global.GetProfile(profile);
+                var creds = Global.Profiles.GetProfile(profile);
                 if (creds == null)
                     return InternalErrorResult($"The profile '{profile}' is not valid.");
 
