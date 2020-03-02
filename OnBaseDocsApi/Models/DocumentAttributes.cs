@@ -11,7 +11,6 @@ namespace OnBaseDocsApi.Models
         public string DocumentType { get; set; }
         public string Status { get; set; }
         public string Name { get; set; }
-        public long ID { get; set; }
         public long LatestAllowedRevisionID { get; set; }
         public string DefaultFileType { get; set; }
         public IEnumerable<Keyword> Keywords { get; set; }

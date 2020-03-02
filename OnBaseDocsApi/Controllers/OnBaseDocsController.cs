@@ -182,9 +182,9 @@ namespace OnBaseDocsApi.Controllers
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExt))
-                return BadRequestResult("The required parameter document content is missing.");
+                return BadRequestResult("The required parameter 'file' is missing.");
             if (docAttr == null)
-                return BadRequestResult("The required parameter document attributes are missing.");
+                return BadRequestResult("The required parameter 'attributes' is missing.");
             if (string.IsNullOrWhiteSpace(docAttr.IndexKey))
                 return BadRequestResult("The required parameter 'IndexKey' is empty.");
             if (string.IsNullOrWhiteSpace(docAttr.DocumentType))
@@ -202,7 +202,7 @@ namespace OnBaseDocsApi.Controllers
                 {
                     finalDocType = app.Core.DocumentTypes.Find(docAttr.DocumentType);
                     if (finalDocType == null)
-                        return InternalErrorResult($"The DocumentType '{docAttr.DocumentType}' could not be found.");
+                        return BadRequestResult($"The DocumentType '{docAttr.DocumentType}' could not be found.");
                 }
 
                 var createAttr = new DocumentCreateAttributes
@@ -230,7 +230,7 @@ namespace OnBaseDocsApi.Controllers
                     });
                 }
 
-                return DocumentResult(doc);
+                return DocumentResult(doc, true);
             });
         }
 
@@ -367,7 +367,7 @@ namespace OnBaseDocsApi.Controllers
             }
         }
 
-        IHttpActionResult DocumentResult(Document doc)
+        IHttpActionResult DocumentResult(Document doc, bool createdDoc = false)
         {
             var config = Global.Config;
 
@@ -380,15 +380,16 @@ namespace OnBaseDocsApi.Controllers
                     }))
                 .ToArray();
 
-            return Ok(new DataResult<DocumentAttributes>
+            var selfUri = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}";
+
+            var result = new DataResult<DocumentAttributes>
             {
                 Data = new DataResource<DocumentAttributes>
                 {
-                    Id = doc.ID,
+                    ID = doc.ID.ToString(),
                     Type = "onbaseDocument",
                     Attributes = new DocumentAttributes
                     {
-                        ID = doc.ID,
                         CreatedBy = doc.CreatedBy.ID,
                         DateStored = doc.DateStored,
                         DocumentDate = doc.DocumentDate,
@@ -401,7 +402,7 @@ namespace OnBaseDocsApi.Controllers
                     },
                     Links = new DataLinks
                     {
-                        Self = $"{config.ApiHost}/{config.ApiBasePath}/{doc.ID}",
+                        Self = selfUri,
                     }
                 },
                 Links = new DataLinks
@@ -420,7 +421,12 @@ namespace OnBaseDocsApi.Controllers
                     Self = $"{config.ApiHost}/{config.ApiBasePath}",
 >>>>>>> Addressing code review comments.
                 }
-            });
+            };
+
+            if (createdDoc)
+                return Created(selfUri, result);
+            else
+                return Ok(result);
         }
     }
 }
