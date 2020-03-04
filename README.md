@@ -2,7 +2,7 @@
 
 ## Configure
 
-Copy `OnBaseDocsApi/api-config-example.json` to `OnBaseDocsApi/api-config.json` and modify as necessary
+Copy `OnBaseDocsApi/api-config-example.yaml` to `OnBaseDocsApi/api-config.yaml` and modify as necessary
 
 ## Run the API
 

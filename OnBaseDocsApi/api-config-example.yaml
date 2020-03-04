@@ -1,0 +1,6 @@
+apiBasePath: api/v1/onbase-docs
+apiHost: https://api.oregonstate.edu
+dataSource: testDatabaseName
+serviceUrl: https://onbase-url.com
+docIndexKeyName: Index Key Sample
+stagingDocType: Staging Sample
