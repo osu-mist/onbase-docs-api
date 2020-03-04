@@ -1,2 +1,5 @@
 # API configuration file
 **/api-config.json
+
+# Profiles
+**/profiles.json

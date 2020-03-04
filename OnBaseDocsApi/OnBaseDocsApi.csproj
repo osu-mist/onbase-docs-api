@@ -85,6 +85,7 @@
     <Compile Include="Models\Error.cs" />
     <Compile Include="Models\ErrorLinks.cs" />
     <Compile Include="Models\ErrorResult.cs" />
+    <Compile Include="Models\Profiles.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
@@ -94,8 +95,6 @@
   <ItemGroup>
     <None Include="Libs\Hyland.Types.dll" />
     <None Include="Libs\Hyland.Unity.dll" />
-    <None Include="api-config-example.json" />
-    <None Include="api-config.json" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
