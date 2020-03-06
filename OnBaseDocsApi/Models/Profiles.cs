@@ -1,4 +1,3 @@
-using System.IO;
 using System.Collections.Generic;
 
 namespace OnBaseDocsApi.Models
@@ -7,9 +6,9 @@ namespace OnBaseDocsApi.Models
     {
         private readonly Dictionary<string, Credentials> _profiles;
 
-        public Profiles(YamlDotNet.Serialization.IDeserializer deserializer, string path)
+        public Profiles(Dictionary<string, Credentials> credentials)
         {
-            _profiles = deserializer.Deserialize<Dictionary<string, Credentials>>(File.ReadAllText(path));
+            _profiles = credentials;
         }
 
         public Credentials GetProfile(string profileName)

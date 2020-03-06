@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Web;
 using System.Web.Http;
@@ -23,7 +24,8 @@ namespace OnBaseDocsApi
             // Load api config
             Config = deserializer.Deserialize<ApiConfig>(File.ReadAllText("api-config.yaml"));
             // Load profiles
-            Profiles = new Profiles(deserializer, "profiles.yaml");
+            var credentials = deserializer.Deserialize<Dictionary<string, Credentials>>(File.ReadAllText("profiles.yaml"));
+            Profiles = new Profiles(credentials);
         }
     }
 }
