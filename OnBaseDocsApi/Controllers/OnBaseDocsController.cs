@@ -257,7 +257,7 @@ namespace OnBaseDocsApi.Controllers
 
         IHttpActionResult TryHandleRequest(Func<Application, IHttpActionResult> handler)
         {
-            const string profile = "default";
+            const string profile = "test";
 
             try
             {

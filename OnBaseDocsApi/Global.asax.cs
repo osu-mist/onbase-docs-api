@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Web;
 using System.Web.Http;
 using OnBaseDocsApi.Models;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace OnBaseDocsApi
 {
@@ -13,10 +17,15 @@ namespace OnBaseDocsApi
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);
 
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+
             // Load api config
-            Config = new ApiConfig("api-config.json");
+            Config = deserializer.Deserialize<ApiConfig>(File.ReadAllText("api-config.yaml"));
             // Load profiles
-            Profiles = new Profiles("profiles.json");
+            var credentials = deserializer.Deserialize<Dictionary<string, Credentials>>(File.ReadAllText("profiles.yaml"));
+            Profiles = new Profiles(credentials);
         }
     }
 }
