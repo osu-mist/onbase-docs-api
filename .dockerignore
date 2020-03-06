@@ -1,5 +1,5 @@
 # API configuration file
-**/api-config.json
+**/api-config.yaml
 
 # Profiles
-**/profiles.json
+**/profiles.yaml

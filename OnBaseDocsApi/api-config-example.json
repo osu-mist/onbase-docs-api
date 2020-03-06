@@ -1,8 +1,0 @@
-{
-    "serviceUrl": "https://onbase-url.com",
-    "dataSource": "testDatabaseName",
-    "apiBasePath": "/api/v1/onbase-docs",
-    "apiHost": "https://api.oregonstate.edu",
-    "docIndexKeyName": "Index Key Sample",
-    "stagingDocType": "Staging Sample"
-}
