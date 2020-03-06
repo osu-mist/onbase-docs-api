@@ -86,7 +86,10 @@
     <Compile Include="Models\Error.cs" />
     <Compile Include="Models\ErrorLinks.cs" />
     <Compile Include="Models\ErrorResult.cs" />
+<<<<<<< HEAD
     <Compile Include="Models\Profiles.cs" />
+=======
+>>>>>>> 59818c9c39e6e7719cdbe93cb6fb631b5acbe53e
     <Compile Include="Models\DocumentPostAttributes.cs" />
     <Compile Include="Models\DocumentCreateAttributes.cs" />
     <Compile Include="Models\DataResource.cs" />

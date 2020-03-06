@@ -1,8 +1,27 @@
 {
+<<<<<<< HEAD
     "serviceUrl": "https://onbase-url.com",
     "dataSource": "testDatabaseName",
     "apiBasePath": "/api/v1/onbase-docs",
     "apiHost": "https://api.oregonstate.edu",
     "docIndexKeyName": "Index Key Sample",
     "stagingDocType": "Staging Sample"
+=======
+  "serviceUrl": "https://onbase-url.com",
+  "dataSource": "testDatabaseName",
+  "apiBasePath": "/api/v1/onbase-docs",
+  "apiHost": "https://api.oregonstate.edu",
+  "docIndexKeyName": "Index Key Sample",
+  "stagingDocType": "Staging Sample",
+  "profiles": {
+    "profile1": {
+      "username": "user",
+      "password": "pass"
+    },
+    "profile2": {
+      "username": "user2",
+      "password": "pass2"
+    }
+  }
+>>>>>>> 59818c9c39e6e7719cdbe93cb6fb631b5acbe53e
 }

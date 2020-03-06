@@ -176,7 +176,7 @@ namespace OnBaseDocsApi.Controllers
                     });
                 }
 
-                return DocumentResult(doc);
+                return DocumentResult(doc, true);
             });
         }
 
