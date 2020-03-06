@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Hyland.Types;
 using Hyland.Unity;
+<<<<<<< HEAD
 using Newtonsoft.Json;
+=======
+>>>>>>> rebasing to master
 using Newtonsoft.Json.Linq;
 using OnBaseDocsApi.Models;
 
@@ -80,47 +83,29 @@ namespace OnBaseDocsApi.Controllers
 
                 foreach (HttpContent content in provider.Contents)
                 {
-                    // The Content-Disposition header is required.
-                    if (content.Headers.ContentDisposition == null)
-                        return BadRequestResult($"A Content-Disposition header is required.");
-
-                    var dispoName = content.Headers.ContentDisposition.Name.Trim('"');
-
-                    if (dispoName == "file")
+                    if (content.Headers.Contains("Content-Type")
+                        && content.Headers.Contains("Content-Disposition"))
                     {
                         // The content is a file.
-                        // Only allow one content file.
                         if ((docStream != null) || !string.IsNullOrEmpty(docExt))
-                            return BadRequestResult("More than one document content was included.");
+                            return ConflictResult("More than one document content was included.");
 
-                        var fileName = content.Headers.ContentDisposition.FileName.Trim('"');
+                        var dispo = new ContentDisposition(
+                            content.Headers.GetValues("Content-Disposition").First());
                         docStream = content.ReadAsStreamAsync().Result;
-                        docExt = Path.GetExtension(fileName).TrimStart('.');
+                        docExt = Path.GetExtension(dispo.FileName).TrimStart('.');
                     }
-                    else if (dispoName == "attributes")
+                    else
                     {
                         // The content is JSON.
-                        // Only allow one JSON attributes.
                         if (docAttr != null)
-                            return BadRequestResult("More than one document attributes was included.");
+                            return ConflictResult("More than one document attributes was included.");
 
                         docAttr = JObject
                             .Parse(content.ReadAsStringAsync().Result)
                             .ToObject<DocumentPostAttributes>();
                     }
-                    else
-                    {
-                        return BadRequestResult($"Unexpected Content-Disposition header of name '{dispoName}'.");
-                    }
                 }
-            }
-            catch (JsonReaderException ex)
-            {
-                return BadRequestResult($"JSON parse error. {ex.Message}");
-            }
-            catch (IOException ex) when (ex.Message.Contains("MIME multipart message is not complete"))
-            {
-                return BadRequestResult(ex.Message);
             }
             catch (Exception ex)
             {
@@ -128,9 +113,9 @@ namespace OnBaseDocsApi.Controllers
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExt))
-                return BadRequestResult("The required parameter 'file' is missing.");
+                return ConflictResult("The required parameter document content is missing.");
             if (docAttr == null)
-                return BadRequestResult("The required parameter 'attributes' is missing.");
+                return ConflictResult("The required parameter document attributes are missing.");
             if (string.IsNullOrWhiteSpace(docAttr.IndexKey))
                 return BadRequestResult("The required parameter 'IndexKey' is empty.");
             if (string.IsNullOrWhiteSpace(docAttr.DocumentType))
@@ -141,15 +126,6 @@ namespace OnBaseDocsApi.Controllers
                 // The document is moved to staging when there are no keywords included
                 // so that we can kick off a re-index to generate the autofill keywords.
                 bool toStaging = (docAttr.Keywords == null) || !docAttr.Keywords.Any();
-
-                // When going to staging, confirm that the final doc type is actually valid.
-                DocumentType finalDocType = null;
-                if (toStaging)
-                {
-                    finalDocType = app.Core.DocumentTypes.Find(docAttr.DocumentType);
-                    if (finalDocType == null)
-                        return BadRequestResult($"The DocumentType '{docAttr.DocumentType}' could not be found.");
-                }
 
                 var createAttr = new DocumentCreateAttributes
                 {
@@ -172,11 +148,11 @@ namespace OnBaseDocsApi.Controllers
                     var docId = doc.ID;
                     Task.Run(() =>
                     {
-                        MoveDocumentToWorkflow(docId, finalDocType);
+                        MoveDocumentToWorkflow(docId, docAttr.DocumentType);
                     });
                 }
 
-                return DocumentResult(doc, true);
+                return DocumentResult(doc);
             });
         }
 
@@ -226,10 +202,12 @@ namespace OnBaseDocsApi.Controllers
             return null;
         }
 
-        void MoveDocumentToWorkflow(long docId, DocumentType docType)
+        void MoveDocumentToWorkflow(long docId, string documentType)
         {
             TryHandleDocRequest(docId, (app, doc) =>
             {
+                var docType = app.Core.DocumentTypes.Find(documentType);
+
                 // First index the document so that the autofill keywords are populated
                 // then add the document to the workflow.
                 var reindexProps = app.Core.Storage.CreateReindexProperties(doc, docType);
