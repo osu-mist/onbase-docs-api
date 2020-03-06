@@ -73,18 +73,16 @@ namespace OnBaseDocsApi.Controllers
         {
             const string profile = "default";
 
-
             try
             {
-                var app = Global.Profiles.LogIn(profile);
-                if (app == null)
-                {
-                    return InternalErrorResult($"The profile '{profile}' is not valid.");
-                }
-                using (app)
+                using (var app = Global.Profiles.LogIn(profile))
                 {
                     return handler(app);
                 }
+            }
+            catch (Profiles.ProfileNotFoundException)
+            {
+                return InternalErrorResult($"The profile '{profile}' is not valid.");
             }
             catch (Exception ex)
             {

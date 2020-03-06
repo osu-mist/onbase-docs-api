@@ -1,4 +1,5 @@
 // #define LOG_IN_WITH_SID
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace OnBaseDocsApi.Models
         {
             if (!_profiles.ContainsKey(profileName))
             {
-                return null;
+                throw new ProfileNotFoundException();
             }
             Profile profile = _profiles[profileName];
             if (profile.Application == null)
@@ -72,7 +73,8 @@ namespace OnBaseDocsApi.Models
                  * as well
                  */
                 throw new System.Exception("Application has not been initially logged in");
-            } else
+            }
+            else
             {
                 // Log in using sid
                 var config = Global.Config;
@@ -89,7 +91,7 @@ namespace OnBaseDocsApi.Models
         {
             if (!_profiles.ContainsKey(profileName))
             {
-                return null;
+                throw new ProfileNotFoundException();
             }
             var config = Global.Config;
             var props = Application.CreateOnBaseAuthenticationProperties(
@@ -109,5 +111,13 @@ namespace OnBaseDocsApi.Models
             public Application Application { get; set; }
         }
 #endif
+
+        public class ProfileNotFoundException : Exception
+        {
+            public ProfileNotFoundException()
+            {
+            }
+        }
+
     }
 }
