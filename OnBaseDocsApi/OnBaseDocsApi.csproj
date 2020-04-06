@@ -89,6 +89,9 @@
     <Compile Include="Models\ErrorLinks.cs" />
     <Compile Include="Models\ErrorResult.cs" />
     <Compile Include="Models\Profiles.cs" />
+    <Compile Include="Controllers\HealthCheckController.cs" />
+    <Compile Include="Models\HealthCheck.cs" />
+    <Compile Include="Models\HealthCheckMeta.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

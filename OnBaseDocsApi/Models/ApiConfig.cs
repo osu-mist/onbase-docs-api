@@ -11,5 +11,8 @@ namespace OnBaseDocsApi.Models
         public string DocIndexKeyName { get; set; }
         public string StagingDocType { get; set; }
         public Dictionary<string, Credentials> Profiles { get; set; }
+        public string Port { get; set; }
+        public string AdminPort { get; set; }
+        public Credentials Authentication { get; set; }
     }
 }

@@ -33,6 +33,11 @@ namespace OnBaseDocsApi
                 name: "Default",
                 routeTemplate: "api/v1/{controller}"
             );
+            config.Routes.MapHttpRoute(
+                name: "HealthCheck",
+                routeTemplate: "",
+                defaults: new { controller = "HealthCheck" }
+            );
         }
     }
 }

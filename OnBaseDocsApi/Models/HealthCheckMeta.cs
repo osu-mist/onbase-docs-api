@@ -2,17 +2,13 @@
 
 namespace OnBaseDocsApi.Models
 {
-    public class HealthCheck
+    public class HealthCheckMeta
     {
-        public HealthCheckMeta Meta { get; set; }
+        public string Name { get; set; }
+        public string Time { get; set; }
+        public UInt64 UnixTime { get; set; }
+        public string Commit { get; set; }
+        public string Documentation { get; set; }
     }
 }
-/*
-    meta: {
-            name: openapi.info.title,
-            time: now.format('YYYY-MM-DD HH:mm:ssZZ'),
-            unixTime: now.unix(),
-            commit: commit.trim(),
-            documentation: 'openapi.yaml',
-        }
-      */
+
