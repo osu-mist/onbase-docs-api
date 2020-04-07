@@ -20,13 +20,13 @@ namespace OnBaseDocsApi
             config.Routes.MapHttpRoute(
                 name: "ApiWithAction",
                 routeTemplate: "api/v1/{controller}/{id}/{action}",
-                defaults: new { id = RouteParameter.Optional },
+                defaults: new { },
                 constraints: new { id = numeric }
             );
             config.Routes.MapHttpRoute(
                 name: "ApiNoAction",
                 routeTemplate: "api/v1/{controller}/{id}",
-                defaults: new { action = "", id = RouteParameter.Optional },
+                defaults: new { action = "" },
                 constraints: new { id = numeric }
             );
             config.Routes.MapHttpRoute(
@@ -35,7 +35,7 @@ namespace OnBaseDocsApi
             );
             config.Routes.MapHttpRoute(
                 name: "HealthCheck",
-                routeTemplate: "",
+                routeTemplate: "api/v1",
                 defaults: new { controller = "HealthCheck" }
             );
         }
