@@ -26,6 +26,7 @@ namespace OnBaseDocsApi
 
             // Load api config
             Config = deserializer.Deserialize<ApiConfig>(File.ReadAllText("api-config.yaml"));
+
             // Replace the environment variables.
             Config.ApiBasePath = ReplaceVar(regex, Config.ApiBasePath);
             Config.ApiHost = ReplaceVar(regex, Config.ApiHost);
@@ -33,11 +34,15 @@ namespace OnBaseDocsApi
             Config.DataSource = ReplaceVar(regex, Config.DataSource);
             Config.DocIndexKeyName = ReplaceVar(regex, Config.DocIndexKeyName);
             Config.StagingDocType = ReplaceVar(regex, Config.StagingDocType);
+            Config.Authentication.Username = ReplaceVar(regex, Config.Authentication.Username);
+            Config.Authentication.Password = ReplaceVar(regex, Config.Authentication.Password);
+
             foreach (var c in Config.Profiles.Values)
             {
                 c.Username = ReplaceVar(regex, c.Username);
                 c.Password = ReplaceVar(regex, c.Password);
             }
+
             // Load profiles
             Profiles = new Profiles(Config.Profiles);
         }

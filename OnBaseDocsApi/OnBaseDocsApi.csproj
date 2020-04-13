@@ -92,11 +92,13 @@
     <Compile Include="Controllers\HealthCheckController.cs" />
     <Compile Include="Models\HealthCheck.cs" />
     <Compile Include="Models\HealthCheckMeta.cs" />
+    <Compile Include="Attributes\BasicAuthenticationAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Controllers\" />
     <Folder Include="Libs\" />
+    <Folder Include="Attributes\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Libs\Hyland.Types.dll" />

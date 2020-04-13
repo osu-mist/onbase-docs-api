@@ -7,12 +7,14 @@ using System.Web.Http;
 using Hyland.Types;
 using Hyland.Unity;
 using System.Linq;
+using OnBaseDocsApi.Attributes;
 using OnBaseDocsApi.Models;
 
 using Keyword = OnBaseDocsApi.Models.Keyword;
 
 namespace OnBaseDocsApi.Controllers
 {
+    [BasicAuthentication]
     public class OnBaseDocsController : BaseApiController
     {
         [HttpGet]
