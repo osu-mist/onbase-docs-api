@@ -1,9 +1,11 @@
 using System;
 using System.Web.Http;
+using OnBaseDocsApi.Attributes;
 using OnBaseDocsApi.Models;
 
 namespace OnBaseDocsApi.Controllers
 {
+    [BasicAuthentication]
     public class HealthCheckController : BaseApiController
     {
         [HttpGet]

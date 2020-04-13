@@ -8,8 +8,6 @@ namespace OnBaseDocsApi
     {
         public static void Register(HttpConfiguration config)
         {
-            const string numeric = @"^\d+$";
-
             // Web API configuration and services
             config.Formatters.Clear();
             config.Formatters.Add(new JsonMediaTypeFormatter());
@@ -19,19 +17,18 @@ namespace OnBaseDocsApi
             config.MapHttpAttributeRoutes();
             config.Routes.MapHttpRoute(
                 name: "ApiWithAction",
-                routeTemplate: "api/v1/{controller}/{id}/{action}",
-                defaults: new { },
-                constraints: new { id = numeric }
+                routeTemplate: "api/v1/onbase-docs/{id}/{action}",
+                defaults: new { controller = "onbasedocs" }
             );
             config.Routes.MapHttpRoute(
                 name: "ApiNoAction",
-                routeTemplate: "api/v1/{controller}/{id}",
-                defaults: new { action = "" },
-                constraints: new { id = numeric }
+                routeTemplate: "api/v1/onbase-docs/{id}",
+                defaults: new { controller = "onbasedocs", action = "" }
             );
             config.Routes.MapHttpRoute(
                 name: "Default",
-                routeTemplate: "api/v1/{controller}"
+                routeTemplate: "api/v1/onbase-docs",
+                defaults: new { controller = "onbasedocs" }
             );
             config.Routes.MapHttpRoute(
                 name: "HealthCheck",
