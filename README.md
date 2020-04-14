@@ -6,14 +6,19 @@ Copy `OnBaseDocsApi/api-config-example.yaml` to `OnBaseDocsApi/api-config.yaml` 
 
 ## Run the API
 
-### Docker
+Example Dockerfile:
 
-Remove any existing containers named `onbase-docs-api`
-```shell
-docker rm -f onbase-docs-api
-```
+```Dockerfile
+FROM mono:6.6
 
-Build and run the API
-```shell
-./docker.sh
+WORKDIR /usr/src/app
+
+COPY . .
+
+RUN apt-get -y update && apt-get -y install mono-xsp4
+
+RUN nuget restore
+RUN msbuild -p:Configuration=Release OnBaseDocsApi
+
+CMD cd OnBaseDocsApi && xsp4 --port=${PORT} --nonstop
 ```
