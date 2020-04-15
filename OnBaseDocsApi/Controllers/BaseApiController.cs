@@ -6,6 +6,11 @@ namespace OnBaseDocsApi.Controllers
 {
     public abstract class BaseApiController : ApiController
     {
+        protected IHttpActionResult BadRequestResult(string detail)
+        {
+            return ErrorResult(HttpStatusCode.BadRequest, "Bad request", detail);
+        }
+
         protected IHttpActionResult NotFoundResult(string title, string detail)
         {
             return ErrorResult(HttpStatusCode.NotFound, title, detail);
