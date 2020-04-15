@@ -87,7 +87,7 @@ namespace OnBaseDocsApi.Controllers
                 {
                     // The Content-Disposition header is required.
                     if (content.Headers.ContentDisposition == null)
-                        return BadRequestResult($"A Content-Disposition header is required.");
+                        return BadRequestResult("A Content-Disposition header is required.");
 
                     var dispoName = content.Headers.ContentDisposition.Name.Trim('"');
 
@@ -198,17 +198,26 @@ namespace OnBaseDocsApi.Controllers
         {
             doc = null;
 
+            var errors = new List<Error>();
+
             var docType = app.Core.DocumentTypes.Find(attr.DocumentType);
             if (docType == null)
-                return BadRequestResult($"The DocumentType '{attr.DocumentType}' could not be found.");
+                errors.Add(BadRequestError($"The DocumentType '{attr.DocumentType}' could not be found."));
 
             var fileType = app.Core.FileTypes.Find(attr.Ext);
             if (fileType == null)
-                return BadRequestResult($"The FileType '{attr.Ext}' could not be found.");
+                errors.Add(BadRequestError($"The FileType '{attr.Ext}' could not be found."));
+
+            var pageData = app.Core.Storage.CreatePageData(attr.Stream, attr.Ext);
+            if (pageData == null)
+                errors.Add(BadRequestError($"Unable to create page data for '{attr.Ext}'."));
+
+            if (errors.Any())
+                return BadRequestResult(errors);
 
             var props = app.Core.Storage.CreateStoreNewDocumentProperties(docType, fileType);
             if (props == null)
-                return InternalErrorResult($"Unable to create document properties for '{attr.DocumentType}' and '{attr.Ext}'.");
+                return BadRequestResult($"Unable to create document properties for '{attr.DocumentType}' and '{attr.Ext}'.");
 
             props.AddKeyword(Global.Config.DocIndexKeyName, attr.IndexKey);
             props.DocumentDate = DateTime.Now;
@@ -229,13 +238,9 @@ namespace OnBaseDocsApi.Controllers
                 }
             }
 
-            var pageData = app.Core.Storage.CreatePageData(attr.Stream, attr.Ext);
-            if (pageData == null)
-                InternalErrorResult($"Unable to create page data for '{attr.Ext}'.");
-
             doc = app.Core.Storage.StoreNewDocument(pageData, props);
             if (doc == null)
-                return InternalErrorResult($"Unable to create document.");
+                return BadRequestResult("Unable to create document.");
 
             return null;
         }
