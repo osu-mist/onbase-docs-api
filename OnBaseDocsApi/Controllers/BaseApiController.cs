@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Web.Http;
 using OnBaseDocsApi.Models;
 
@@ -6,9 +8,24 @@ namespace OnBaseDocsApi.Controllers
 {
     public abstract class BaseApiController : ApiController
     {
+        protected Error BadRequestError(string detail)
+        {
+            return new Error
+            {
+                Status = ((int)HttpStatusCode.BadRequest).ToString(),
+                Title = "Bad request",
+                Detail = detail,
+            };
+        }
+
         protected IHttpActionResult BadRequestResult(string detail)
         {
             return ErrorResult(HttpStatusCode.BadRequest, "Bad request", detail);
+        }
+
+        protected IHttpActionResult BadRequestResult(IEnumerable<Error> errors)
+        {
+            return ErrorResult(HttpStatusCode.BadRequest, errors);
         }
 
         protected IHttpActionResult NotFoundResult(string title, string detail)
@@ -29,9 +46,9 @@ namespace OnBaseDocsApi.Controllers
             return Content(statusCode,
                 new ErrorResult
                 {
-                    Errors = new Error[]
+                    Errors = new ErrorResource[]
                     {
-                        new Error
+                        new ErrorResource
                         {
                             Status = strStatus,
                             Code = strCode,
@@ -44,6 +61,36 @@ namespace OnBaseDocsApi.Controllers
                         }
                     }
                 });
+        }
+
+        protected IHttpActionResult ErrorResult(HttpStatusCode statusCode, IEnumerable<ErrorResource> errors)
+        {
+            return Content(statusCode,
+                new ErrorResult
+                {
+                    Errors = errors
+                });
+        }
+
+        protected IHttpActionResult ErrorResult(HttpStatusCode statusCode, IEnumerable<Error> errors)
+        {
+            return ErrorResult(statusCode,
+                errors.Select(x =>
+                {
+                    var strCode = $"1{x.Status}";
+
+                    return new ErrorResource
+                    {
+                        Status = x.Status,
+                        Code = strCode,
+                        Title = x.Title,
+                        Detail = x.Detail,
+                        Links = new ErrorLinks
+                        {
+                            About = $"https://developer.oregonstate.edu/documentation/error-reference#{strCode}"
+                        }
+                    };
+                }));
         }
     }
 }

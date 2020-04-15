@@ -84,7 +84,7 @@
     <Compile Include="Models\Credentials.cs" />
     <Compile Include="Models\DataLinks.cs" />
     <Compile Include="Models\DataResult.cs" />
-    <Compile Include="Models\Error.cs" />
+    <Compile Include="Models\ErrorResource.cs" />
     <Compile Include="Models\ErrorLinks.cs" />
     <Compile Include="Models\ErrorResult.cs" />
     <Compile Include="Models\Profiles.cs" />
@@ -95,6 +95,7 @@
     <Compile Include="Models\DocumentCreateAttributes.cs" />
     <Compile Include="Models\DocumentPostAttributes.cs" />
     <Compile Include="Models\DataResource.cs" />
+    <Compile Include="Models\Error.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

@@ -5,6 +5,6 @@ namespace OnBaseDocsApi.Models
 {
     public class ErrorResult
     {
-        public IEnumerable<Error> Errors { get; set; }
+        public IEnumerable<ErrorResource> Errors { get; set; }
     }
 }

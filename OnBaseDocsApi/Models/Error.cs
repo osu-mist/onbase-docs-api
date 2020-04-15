@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace OnBaseDocsApi.Models
 {
-    public class ErrorResult
+    public class Error
     {
-        public IEnumerable<Error> Errors { get; set; }
+        public string Status { get; set; }
+        public string Title { get; set; }
+        public string Detail { get; set; }
     }
 }

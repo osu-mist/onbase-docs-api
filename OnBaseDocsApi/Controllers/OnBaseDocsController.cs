@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -74,6 +75,9 @@ namespace OnBaseDocsApi.Controllers
             string docExt = null;
             DocumentPostAttributes docAttr = null;
 
+            // We bundle the bad requests in one response.
+            var errors = new List<Error>();
+
             try
             {
                 var provider = await Request.Content.ReadAsMultipartAsync(
@@ -117,11 +121,11 @@ namespace OnBaseDocsApi.Controllers
             }
             catch (JsonReaderException ex)
             {
-                return BadRequestResult($"JSON parse error. {ex.Message}");
+                errors.Add(BadRequestError($"JSON parse error. {ex.Message}"));
             }
             catch (IOException ex) when (ex.Message.Contains("MIME multipart message is not complete"))
             {
-                return BadRequestResult(ex.Message);
+                errors.Add(BadRequestError(ex.Message));
             }
             catch (Exception ex)
             {
@@ -129,13 +133,17 @@ namespace OnBaseDocsApi.Controllers
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExt))
-                return BadRequestResult("The required parameter 'file' is missing.");
+                errors.Add(BadRequestError("The required parameter 'file' is missing."));
             if (docAttr == null)
-                return BadRequestResult("The required parameter 'attributes' is missing.");
-            if (string.IsNullOrWhiteSpace(docAttr.IndexKey))
-                return BadRequestResult("The required parameter 'IndexKey' is empty.");
-            if (string.IsNullOrWhiteSpace(docAttr.DocumentType))
-                return BadRequestResult("The required parameter 'DocumentType' is empty.");
+                errors.Add(BadRequestError("The required parameter 'attributes' is missing."));
+            if ((docAttr == null) || string.IsNullOrWhiteSpace(docAttr.IndexKey))
+                errors.Add(BadRequestError("The required parameter 'IndexKey' is empty."));
+            if ((docAttr == null) || string.IsNullOrWhiteSpace(docAttr.DocumentType))
+                errors.Add(BadRequestError("The required parameter 'DocumentType' is empty."));
+
+            // Check if there are any errors. If there are then return them.
+            if (errors.Any())
+                return BadRequestResult(errors);
 
             return TryHandleRequest(app =>
             {
@@ -162,9 +170,9 @@ namespace OnBaseDocsApi.Controllers
                     Stream = docStream,
                     ToStaging = toStaging,
                 };
-                var result = CreateDocument(app, createAttr, out var doc);
-                if (result != null)
-                    return result;
+                var error = CreateDocument(app, createAttr, out var doc);
+                if (error != null)
+                    return error;
 
                 if (toStaging)
                 {
@@ -181,17 +189,22 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
+        /// <summary>
+        /// CreateDocument returns an error result when an error occurs; null otherwise. If CreateDocument
+        /// return null, then the out parameter doc is guaranteed to be valid.
+        /// </summary>
+        /// <returns>An error result or null. A null result indicates that the document was created successfully.</returns>
         IHttpActionResult CreateDocument(Application app, DocumentCreateAttributes attr, out Document doc)
         {
             doc = null;
 
             var docType = app.Core.DocumentTypes.Find(attr.DocumentType);
             if (docType == null)
-                return InternalErrorResult($"The DocumentType '{attr.DocumentType}' could not be found.");
+                return BadRequestResult($"The DocumentType '{attr.DocumentType}' could not be found.");
 
             var fileType = app.Core.FileTypes.Find(attr.Ext);
             if (fileType == null)
-                return InternalErrorResult($"The FileType '{attr.Ext}' could not be found.");
+                return BadRequestResult($"The FileType '{attr.Ext}' could not be found.");
 
             var props = app.Core.Storage.CreateStoreNewDocumentProperties(docType, fileType);
             if (props == null)
