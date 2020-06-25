@@ -27,7 +27,7 @@ namespace OnBaseDocsApi.Controllers
         {
             return TryHandleDocRequest(id, (_, doc) =>
             {
-                return DocumentResult(doc);
+                return DocumentResult(doc, false);
             });
         }
 
@@ -224,12 +224,6 @@ namespace OnBaseDocsApi.Controllers
             props.Comment = attr.Comment;
             props.ExpandKeysets = false;
 
-            if (attr.ToStaging)
-            {
-                // When uploading a document into staging do not add it to the workflow.
-                props.Options = StoreDocumentOptions.SkipWorkflow;
-            }
-
             if (attr.Keywords != null)
             {
                 foreach (var kw in attr.Keywords)
@@ -297,7 +291,7 @@ namespace OnBaseDocsApi.Controllers
             }
         }
 
-        IHttpActionResult DocumentResult(Document doc, bool createdDoc = false)
+        IHttpActionResult DocumentResult(Document doc, bool createdDoc)
         {
             var config = Global.Config;
 
