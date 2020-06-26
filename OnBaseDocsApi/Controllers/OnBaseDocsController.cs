@@ -194,7 +194,7 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
-        // We can't use [FromUri] to auot bind the query parameters because
+        // We can't use [FromUri] to auto bind the query parameters because
         // the binding does not work with '[' and ']'. So we must manually
         // bind them.
         [HttpGet]
