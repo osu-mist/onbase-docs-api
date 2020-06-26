@@ -21,19 +21,24 @@ namespace OnBaseDocsApi.Controllers
     [BasicAuthentication]
     public class OnBaseDocsController : BaseApiController
     {
+        const string DefaultIndexKey = "";
+        const string DefaultTypeGroup = "";
+        const long DefaultStartDocId = 0;
+        const int DefaultPageSize = 25;
+
         [HttpGet]
         [ActionName("")]
-        public IHttpActionResult Get(int id)
+        public IHttpActionResult Get(long id)
         {
             return TryHandleDocRequest(id, (_, doc) =>
             {
-                return DocumentResult(doc);
+                return DocumentResult(doc, false);
             });
         }
 
         [HttpGet]
         [ActionName("File")]
-        public IHttpActionResult GetFile(int id)
+        public IHttpActionResult GetFile(long id)
         {
             return TryHandleDocRequest(id, (app, doc) =>
             {
@@ -189,6 +194,77 @@ namespace OnBaseDocsApi.Controllers
             });
         }
 
+        // We can't use [FromUri] to auot bind the query parameters because
+        // the binding does not work with '[' and ']'. So we must manually
+        // bind them.
+        [HttpGet]
+        [ActionName("")]
+        public IHttpActionResult ListDocs()
+        {
+            var parms = new ParamCollection(Request.RequestUri.ParseQueryString());
+            var indexKey = parms.Get("filter[indexKey]", DefaultIndexKey);
+            var typeGroup = parms.Get("filter[typeGroup]", DefaultTypeGroup);
+            var startDocId = parms.Get("filter[startDocId]", DefaultStartDocId);
+            var pageSize = parms.Get("filter[pageSize]", DefaultPageSize);
+
+            var config = Global.Config;
+
+            return TryHandleRequest(app =>
+            {
+                DocumentTypeGroup docTypeGroup = null;
+                if (!string.IsNullOrEmpty(typeGroup))
+                {
+                    docTypeGroup = app.Core.DocumentTypeGroups.Find(typeGroup);
+                    if (docTypeGroup == null)
+                        return BadRequestResult($"The document type group '{typeGroup}' could not be found.");
+                }
+
+                var query = app.Core.CreateDocumentQuery();
+                if (query == null)
+                    return BadRequestResult("Unable to create document query.");
+
+                if (docTypeGroup != null)
+                    query.AddDocumentTypeGroup(docTypeGroup);
+                if (!string.IsNullOrEmpty(indexKey))
+                    query.AddKeyword(config.DocIndexKeyName, indexKey);
+
+                // The OnBase API does not support a method for paging. The closest
+                // we can get is to use a starting document ID.
+                query.AddSort(DocumentQuery.SortAttribute.DocumentID, true);
+                query.AddDocumentRange(startDocId, long.MaxValue);
+                var queryResults = query.Execute(pageSize);
+                if (queryResults == null)
+                    return InternalErrorResult("Document query returned null.");
+
+                var docs = new List<DataResource<DocumentAttributes>>();
+                foreach (var doc in queryResults)
+                {
+                    docs.Add(DocumentResource(doc));
+                }
+
+                // Generate the query string for this request.
+                var queryParts = new List<string>();
+                if (indexKey != DefaultIndexKey)
+                    queryParts.Add($"filter[indexKey]={indexKey}");
+                if (typeGroup != DefaultTypeGroup)
+                    queryParts.Add($"filter[typeGroup]={typeGroup}");
+                if (startDocId != DefaultStartDocId)
+                    queryParts.Add($"filter[startDocId]={startDocId}");
+                if (pageSize != DefaultPageSize)
+                    queryParts.Add($"filter[pageSize]={pageSize}");
+                var queryStr = queryParts.Any() ? "?" + string.Join("&", queryParts) : string.Empty;
+
+                return Ok(new ListResult<DocumentAttributes>
+                {
+                    Data = docs,
+                    Links = new DataLinks
+                    {
+                        Self = $"{config.ApiHost}/{config.ApiBasePath}{queryStr}",
+                    }
+                });
+            });
+        }
+
         /// <summary>
         /// CreateDocument returns an error result when an error occurs; null otherwise. If CreateDocument
         /// return null, then the out parameter doc is guaranteed to be valid.
@@ -297,45 +373,16 @@ namespace OnBaseDocsApi.Controllers
             }
         }
 
-        IHttpActionResult DocumentResult(Document doc, bool createdDoc = false)
+        IHttpActionResult DocumentResult(Document doc, bool createdDoc)
         {
             var config = Global.Config;
-
-            var keywords = doc.KeywordRecords
-                .SelectMany(x => x.Keywords.Select(k =>
-                    new Keyword
-                    {
-                        Name = k.KeywordType.Name,
-                        Value = k.Value.ToString()
-                    }))
-                .ToArray();
 
             var endpointUri = $"{config.ApiHost}/{config.ApiBasePath}";
             var selfUri = $"{endpointUri}/{doc.ID}";
 
             var result = new DataResult<DocumentAttributes>
             {
-                Data = new DataResource<DocumentAttributes>
-                {
-                    ID = doc.ID.ToString(),
-                    Type = "onbaseDocument",
-                    Attributes = new DocumentAttributes
-                    {
-                        CreatedBy = doc.CreatedBy.ID,
-                        DateStored = doc.DateStored,
-                        DocumentDate = doc.DocumentDate,
-                        Status = doc.Status.ToString(),
-                        Name = doc.Name,
-                        DocumentType = doc.DocumentType.Name,
-                        DefaultFileType = doc.DefaultFileType.Name,
-                        LatestAllowedRevisionID = doc.LatestAllowedRevisionID,
-                        Keywords = keywords,
-                    },
-                    Links = new DataLinks
-                    {
-                        Self = selfUri,
-                    }
-                },
+                Data = DocumentResource(doc),
                 Links = new DataLinks
                 {
                     Self = endpointUri,
@@ -346,6 +393,36 @@ namespace OnBaseDocsApi.Controllers
                 return Created(selfUri, result);
             else
                 return Ok(result);
+        }
+
+        DataResource<DocumentAttributes> DocumentResource(Document doc)
+        {
+            var keywords = doc.KeywordRecords
+                .SelectMany(x => x.Keywords.Select(k =>
+                    new Keyword
+                    {
+                        Name = k.KeywordType.Name,
+                        Value = k.Value.ToString()
+                    }))
+                .ToArray();
+
+            return new DataResource<DocumentAttributes>
+            {
+                ID = doc.ID.ToString(),
+                Type = "onbaseDocument",
+                Attributes = new DocumentAttributes
+                {
+                    CreatedBy = doc.CreatedBy.ID,
+                    DateStored = doc.DateStored,
+                    DocumentDate = doc.DocumentDate,
+                    Status = doc.Status.ToString(),
+                    Name = doc.Name,
+                    DocumentType = doc.DocumentType.Name,
+                    DefaultFileType = doc.DefaultFileType.Name,
+                    LatestAllowedRevisionID = doc.LatestAllowedRevisionID,
+                    Keywords = keywords,
+                }
+            };
         }
     }
 }
