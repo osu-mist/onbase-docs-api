@@ -15,28 +15,28 @@ namespace OnBaseDocsApi.Models
         public int Get(string name, int defValue)
         {
             var value = Params[name];
-            if (value != null)
-                return int.Parse(value);
-            else
+            if (string.IsNullOrEmpty(value))
                 return defValue;
+            else
+                return int.Parse(value);
         }
 
         public long Get(string name, long defValue)
         {
             var value = Params[name];
-            if (value != null)
-                return long.Parse(value);
-            else
+            if (string.IsNullOrEmpty(value))
                 return defValue;
+            else
+                return long.Parse(value);
         }
 
         public string Get(string name, string defValue)
         {
             var value = Params[name];
-            if (value != null)
-                return value;
-            else
+            if (string.IsNullOrEmpty(value))
                 return defValue;
+            else
+                return value;
         }
     }
 }

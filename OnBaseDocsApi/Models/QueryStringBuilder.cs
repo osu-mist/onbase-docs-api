@@ -1,10 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace OnBaseDocsApi.Models
 {
-    public class QueryStringBuilder
+    class QueryStringBuilder
     {
-        public QueryStringBuilder()
+        readonly List<string> Parts = new List<string>();
+
+        public void Add<T>(string name, T val, T defValue)
         {
+            if (!val.Equals(defValue))
+                Parts.Add($"{name}={val}");
+        }
+
+        public override string ToString()
+        {
+            return Parts.Any() ? "?" + string.Join("&", Parts) : string.Empty;
         }
     }
 }

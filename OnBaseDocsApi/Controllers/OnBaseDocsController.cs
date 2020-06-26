@@ -243,16 +243,12 @@ namespace OnBaseDocsApi.Controllers
                 }
 
                 // Generate the query string for this request.
-                var queryParts = new List<string>();
-                if (indexKey != DefaultIndexKey)
-                    queryParts.Add($"filter[indexKey]={indexKey}");
-                if (typeGroup != DefaultTypeGroup)
-                    queryParts.Add($"filter[typeGroup]={typeGroup}");
-                if (startDocId != DefaultStartDocId)
-                    queryParts.Add($"filter[startDocId]={startDocId}");
-                if (pageSize != DefaultPageSize)
-                    queryParts.Add($"filter[pageSize]={pageSize}");
-                var queryStr = queryParts.Any() ? "?" + string.Join("&", queryParts) : string.Empty;
+                var builder = new QueryStringBuilder();
+                builder.Add("filter[indexKey]", indexKey, DefaultIndexKey);
+                builder.Add("filter[typeGroup]", typeGroup, DefaultTypeGroup);
+                builder.Add("filter[startDocId]", startDocId, DefaultStartDocId);
+                builder.Add("filter[pageSize]", pageSize, DefaultPageSize);
+                var queryStr = builder.ToString();
 
                 return Ok(new ListResult<DocumentAttributes>
                 {

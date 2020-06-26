@@ -98,6 +98,7 @@
     <Compile Include="Models\Error.cs" />
     <Compile Include="Models\ListResult.cs" />
     <Compile Include="Models\ParamCollection.cs" />
+    <Compile Include="Models\QueryStringBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
