@@ -72,7 +72,7 @@ namespace OnBaseDocsApi.Controllers
             }
 
             Stream docStream = null;
-            string docExt = null;
+            string defaultFileType = null;
             DocumentPostAttributes docAttr = null;
 
             // We bundle the bad requests in one response.
@@ -95,12 +95,12 @@ namespace OnBaseDocsApi.Controllers
                     {
                         // The content is a file.
                         // Only allow one content file.
-                        if ((docStream != null) || !string.IsNullOrEmpty(docExt))
+                        if ((docStream != null) || !string.IsNullOrWhiteSpace(defaultFileType))
                             return BadRequestResult("More than one document content was included.");
 
                         var fileName = content.Headers.ContentDisposition.FileName.Trim('"');
                         docStream = content.ReadAsStreamAsync().Result;
-                        docExt = Path.GetExtension(fileName).TrimStart('.');
+                        defaultFileType = Path.GetExtension(fileName).TrimStart('.');
                     }
                     else if (dispoName == "attributes")
                     {
@@ -132,7 +132,7 @@ namespace OnBaseDocsApi.Controllers
                 return InternalErrorResult(ex.Message);
             }
 
-            if ((docStream == null) || string.IsNullOrWhiteSpace(docExt))
+            if ((docStream == null) || string.IsNullOrWhiteSpace(defaultFileType))
                 errors.Add(BadRequestError("The required parameter 'file' is missing."));
             if (docAttr == null)
                 errors.Add(BadRequestError("The required parameter 'attributes' is missing."));
@@ -166,7 +166,7 @@ namespace OnBaseDocsApi.Controllers
                     Comment = docAttr.Comment,
                     IndexKey = docAttr.IndexKey,
                     Keywords = docAttr.Keywords,
-                    Ext = docExt,
+                    FileType = docAttr.FileType ?? defaultFileType,
                     Stream = docStream,
                     ToStaging = toStaging,
                 };
@@ -204,20 +204,20 @@ namespace OnBaseDocsApi.Controllers
             if (docType == null)
                 errors.Add(BadRequestError($"The DocumentType '{attr.DocumentType}' could not be found."));
 
-            var fileType = app.Core.FileTypes.Find(attr.Ext);
+            var fileType = app.Core.FileTypes.Find(attr.FileType);
             if (fileType == null)
-                errors.Add(BadRequestError($"The FileType '{attr.Ext}' could not be found."));
+                errors.Add(BadRequestError($"The FileType '{attr.FileType}' could not be found."));
 
-            var pageData = app.Core.Storage.CreatePageData(attr.Stream, attr.Ext);
+            var pageData = app.Core.Storage.CreatePageData(attr.Stream, attr.FileType);
             if (pageData == null)
-                errors.Add(BadRequestError($"Unable to create page data for '{attr.Ext}'."));
+                errors.Add(BadRequestError($"Unable to create page data for '{attr.FileType}'."));
 
             if (errors.Any())
                 return BadRequestResult(errors);
 
             var props = app.Core.Storage.CreateStoreNewDocumentProperties(docType, fileType);
             if (props == null)
-                return BadRequestResult($"Unable to create document properties for '{attr.DocumentType}' and '{attr.Ext}'.");
+                return BadRequestResult($"Unable to create document properties for '{attr.DocumentType}' and '{attr.FileType}'.");
 
             props.AddKeyword(Global.Config.DocIndexKeyName, attr.IndexKey);
             props.DocumentDate = DateTime.Now;
