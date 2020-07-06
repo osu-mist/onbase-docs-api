@@ -1,65 +1,46 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
+using System.Linq;
 
 namespace OnBaseDocsApi.Attributes
 {
-    public class BasicAuthenticationAttribute : AuthorizationFilterAttribute
+    public class VerifyProfileHeaderAttribute : AuthorizationFilterAttribute
     {
         public override void OnAuthorization(HttpActionContext actionContext)
         {
-            if (actionContext.Request.Headers.Authorization == null)
+            if (!actionContext.Request.Headers.TryGetValues("OnBaseProfile", out var profiles))
             {
-                // The request is unauthorized since the Authorization
-                // header is missing.
+                // The request does not have the required header.
                 actionContext.Response = actionContext.Request
                     .CreateResponse(HttpStatusCode.Unauthorized);
-                actionContext.Response.Headers.Add("WWW-Authenticate", "Basic");
+                return;
+            }
+
+            if (profiles.Count() != 1)
+            {
+                // The request has more than has more than one header value.
+                actionContext.Response = actionContext.Request
+                    .CreateResponse(HttpStatusCode.Unauthorized);
+                return;
             }
             else
             {
-                var config = Global.Config;
+                var profile = profiles.First();
 
-                // The request has an Authorization header. Get the
-                // authentication token from the header and validate it.
-                var authToken = TryParseToken(
-                    actionContext.Request.Headers.Authorization.Parameter);
-                if (string.IsNullOrEmpty(authToken))
+                var creds = Global.Profiles.GetProfile(profile);
+                if (creds == null)
                 {
+                    // The request has a profile that is not known.
                     actionContext.Response = actionContext.Request
                         .CreateResponse(HttpStatusCode.Unauthorized);
                     return;
                 }
 
-                // Convert the string into an string array.
-                string[] parts = authToken.Split(':');
-                // First element of the array is the username.
-                string username = parts[0];
-                // Second element of the array is the password.
-                string password = parts[1];
-
-                // Validate the username and password.
-                if ((username != config.Authentication.Username)
-                    || (password != config.Authentication.Password))
-                {
-                    actionContext.Response = actionContext.Request
-                        .CreateResponse(HttpStatusCode.Unauthorized);
-                }
-            }
-        }
-
-        string TryParseToken(string authToken)
-        {
-            try
-            {
-                return Encoding.UTF8.GetString(Convert.FromBase64String(authToken));
-            }
-            catch
-            {
-                return null;
+                // The profile is valid.
+                actionContext.Request.Properties.Add("Profile", profile);
             }
         }
     }
