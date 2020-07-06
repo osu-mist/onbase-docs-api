@@ -11,7 +11,7 @@ namespace OnBaseDocsApi.Attributes
     {
         public override void OnAuthorization(HttpActionContext actionContext)
         {
-            if (!actionContext.Request.Headers.TryGetValues("OnBaseProfile", out var profiles))
+            if (!actionContext.Request.Headers.TryGetValues("OnBase-Profile", out var profiles))
             {
                 // The request does not have the required header.
                 actionContext.Response = actionContext.Request
