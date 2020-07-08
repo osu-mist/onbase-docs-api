@@ -8,34 +8,25 @@ namespace OnBaseDocsApi.Attributes
     {
         public override void OnAuthorization(HttpActionContext actionContext)
         {
-            if (!actionContext.Request.Headers.TryGetValues("OnBase-Profile", out var profiles))
+            if (!actionContext.Request.Headers.TryGetValues("OnBase-Profile", out var profiles)
+                || (profiles.Count() != 1))
             {
                 // The request does not have the required header.
                 SetUnauthorizedResult(actionContext, "The account has not been granted access.");
                 return;
             }
 
-            if (profiles.Count() != 1)
+            var profile = profiles.First();
+            var creds = Global.Profiles.GetProfile(profile);
+            if (creds == null)
             {
-                // The request has more than has more than one header value.
-                SetUnauthorizedResult(actionContext, "The account has not been granted access.");
+                // The request has a profile that is not known.
+                SetUnauthorizedResult(actionContext, $"The account profile '{profile}' is not valid.");
                 return;
             }
-            else
-            {
-                var profile = profiles.First();
 
-                var creds = Global.Profiles.GetProfile(profile);
-                if (creds == null)
-                {
-                    // The request has a profile that is not known.
-                    SetUnauthorizedResult(actionContext, $"The account profile '{profile}' is not valid.");
-                    return;
-                }
-
-                // The profile is valid.
-                actionContext.Request.Properties.Add("Profile", profile);
-            }
+            // The profile is valid.
+            actionContext.Request.Properties.Add("Profile", profile);
         }
     }
 }
