@@ -9,6 +9,7 @@ namespace OnBaseDocsApi.Models
         public string Comment { get; set; }
         public string IndexKey { get; set; }
         public string FileType { get; set; }
+        public string FileExtension { get; set; }
         public IEnumerable<Keyword> Keywords { get; set; }
     }
 }
