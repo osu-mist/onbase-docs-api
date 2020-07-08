@@ -1,29 +1,24 @@
 ﻿using System;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http.Controllers;
-using System.Web.Http.Filters;
 using System.Linq;
 
 namespace OnBaseDocsApi.Attributes
 {
-    public class VerifyProfileHeaderAttribute : AuthorizationFilterAttribute
+    public class VerifyProfileHeaderAttribute : BaseAttribute
     {
         public override void OnAuthorization(HttpActionContext actionContext)
         {
             if (!actionContext.Request.Headers.TryGetValues("OnBase-Profile", out var profiles))
             {
                 // The request does not have the required header.
-                actionContext.Response = actionContext.Request
-                    .CreateResponse(HttpStatusCode.Unauthorized);
+                SetUnauthorizedResult(actionContext, "The account has not been granted access.");
                 return;
             }
 
             if (profiles.Count() != 1)
             {
                 // The request has more than has more than one header value.
-                actionContext.Response = actionContext.Request
-                    .CreateResponse(HttpStatusCode.Unauthorized);
+                SetUnauthorizedResult(actionContext, "The account has not been granted access.");
                 return;
             }
             else
@@ -34,8 +29,7 @@ namespace OnBaseDocsApi.Attributes
                 if (creds == null)
                 {
                     // The request has a profile that is not known.
-                    actionContext.Response = actionContext.Request
-                        .CreateResponse(HttpStatusCode.Unauthorized);
+                    SetUnauthorizedResult(actionContext, $"The account profile '{profile}' is not valid.");
                     return;
                 }
 

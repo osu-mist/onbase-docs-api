@@ -1,66 +1,42 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
+using OnBaseDocsApi.Models;
 
 namespace OnBaseDocsApi.Attributes
 {
-    public class BasicAuthenticationAttribute : AuthorizationFilterAttribute
+    public class BaseAttribute : AuthorizationFilterAttribute
     {
-        public override void OnAuthorization(HttpActionContext actionContext)
+        protected void SetUnauthorizedResult(HttpActionContext actionContext,  string detail)
         {
-            if (actionContext.Request.Headers.Authorization == null)
-            {
-                // The request is unauthorized since the Authorization
-                // header is missing.
-                actionContext.Response = actionContext.Request
-                    .CreateResponse(HttpStatusCode.Unauthorized);
-                actionContext.Response.Headers.Add("WWW-Authenticate", "Basic");
-            }
-            else
-            {
-                var config = Global.Config;
-
-                // The request has an Authorization header. Get the
-                // authentication token from the header and validate it.
-                var authToken = TryParseToken(
-                    actionContext.Request.Headers.Authorization.Parameter);
-                if (string.IsNullOrEmpty(authToken))
-                {
-                    actionContext.Response = actionContext.Request
-                        .CreateResponse(HttpStatusCode.Unauthorized);
-                    return;
-                }
-
-                // Convert the string into an string array.
-                string[] parts = authToken.Split(':');
-                // First element of the array is the username.
-                string username = parts[0];
-                // Second element of the array is the password.
-                string password = parts[1];
-
-                // Validate the username and password.
-                if ((username != config.Authentication.Username)
-                    || (password != config.Authentication.Password))
-                {
-                    actionContext.Response = actionContext.Request
-                        .CreateResponse(HttpStatusCode.Unauthorized);
-                }
-            }
+            SetResult(actionContext, HttpStatusCode.Unauthorized, "Unauthorized", detail);
         }
 
-        string TryParseToken(string authToken)
+        protected void SetResult(HttpActionContext actionContext, HttpStatusCode statusCode, string title, string detail)
         {
-            try
-            {
-                return Encoding.UTF8.GetString(Convert.FromBase64String(authToken));
-            }
-            catch
-            {
-                return null;
-            }
+            var strStatus = ((int)statusCode).ToString();
+            var strCode = "1" + strStatus;
+
+            actionContext.Response = actionContext.Request.CreateResponse(statusCode,
+                new ErrorResult
+                {
+                    Errors = new ErrorResource[]
+                    {
+                        new ErrorResource
+                        {
+                            Status = strStatus,
+                            Code = strCode,
+                            Title = title,
+                            Detail = detail,
+                            Links = new ErrorLinks
+                            {
+                                About = $"https://developer.oregonstate.edu/documentation/error-reference#{strCode}"
+                            }
+                        }
+                    }
+                });
         }
     }
 }
