@@ -99,6 +99,8 @@
     <Compile Include="Models\ListResult.cs" />
     <Compile Include="Models\ParamCollection.cs" />
     <Compile Include="Models\QueryStringBuilder.cs" />
+    <Compile Include="Attributes\VerifyProfileHeaderAttribute.cs" />
+    <Compile Include="Attributes\BaseAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

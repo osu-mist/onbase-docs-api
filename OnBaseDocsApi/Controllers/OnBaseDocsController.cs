@@ -19,6 +19,7 @@ using Keyword = OnBaseDocsApi.Models.Keyword;
 namespace OnBaseDocsApi.Controllers
 {
     [BasicAuthentication]
+    [VerifyProfileHeaderAttribute]
     public class OnBaseDocsController : BaseApiController
     {
         const string DefaultIndexKey = "";
@@ -342,11 +343,11 @@ namespace OnBaseDocsApi.Controllers
 
         IHttpActionResult TryHandleRequest(Func<Application, IHttpActionResult> handler)
         {
-            const string profile = "test";
+            Request.Properties.TryGetValue("Profile", out var profile);
 
             try
             {
-                var creds = Global.Profiles.GetProfile(profile);
+                var creds = Global.Profiles.GetProfile(profile as string);
                 if (creds == null)
                     return InternalErrorResult($"The profile '{profile}' is not valid.");
 

@@ -7,7 +7,7 @@ using System.Web.Http.Filters;
 
 namespace OnBaseDocsApi.Attributes
 {
-    public class BasicAuthenticationAttribute : AuthorizationFilterAttribute
+    public class BasicAuthenticationAttribute : BaseAttribute
     {
         public override void OnAuthorization(HttpActionContext actionContext)
         {
@@ -15,8 +15,7 @@ namespace OnBaseDocsApi.Attributes
             {
                 // The request is unauthorized since the Authorization
                 // header is missing.
-                actionContext.Response = actionContext.Request
-                    .CreateResponse(HttpStatusCode.Unauthorized);
+                SetUnauthorizedResult(actionContext, "The authorization credentials were not included.");
                 actionContext.Response.Headers.Add("WWW-Authenticate", "Basic");
             }
             else
@@ -29,8 +28,7 @@ namespace OnBaseDocsApi.Attributes
                     actionContext.Request.Headers.Authorization.Parameter);
                 if (string.IsNullOrEmpty(authToken))
                 {
-                    actionContext.Response = actionContext.Request
-                        .CreateResponse(HttpStatusCode.Unauthorized);
+                    SetUnauthorizedResult(actionContext, "The authorization credentials are invalid.");
                     return;
                 }
 
@@ -45,8 +43,7 @@ namespace OnBaseDocsApi.Attributes
                 if ((username != config.Authentication.Username)
                     || (password != config.Authentication.Password))
                 {
-                    actionContext.Response = actionContext.Request
-                        .CreateResponse(HttpStatusCode.Unauthorized);
+                    SetUnauthorizedResult(actionContext, "Authorization failed.");
                 }
             }
         }
