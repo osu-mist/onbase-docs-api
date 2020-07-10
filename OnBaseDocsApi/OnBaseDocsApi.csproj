@@ -81,7 +81,7 @@
     <Compile Include="Controllers\BaseApiController.cs" />
     <Compile Include="Controllers\OnBaseDocsController.cs" />
     <Compile Include="Models\ApiConfig.cs" />
-    <Compile Include="Models\Credentials.cs" />
+    <Compile Include="Models\Credential.cs" />
     <Compile Include="Models\DataLinks.cs" />
     <Compile Include="Models\DataResult.cs" />
     <Compile Include="Models\ErrorResource.cs" />

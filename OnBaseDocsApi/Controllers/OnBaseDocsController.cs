@@ -347,6 +347,7 @@ namespace OnBaseDocsApi.Controllers
 
             try
             {
+                /*
                 var creds = Global.Profiles.GetProfile(profile as string);
                 if (creds == null)
                     return InternalErrorResult($"The profile '{profile}' is not valid.");
@@ -355,6 +356,8 @@ namespace OnBaseDocsApi.Controllers
                 var props = Application.CreateOnBaseAuthenticationProperties(
                     config.ServiceUrl, creds.Username, creds.Password, config.DataSource);
                 using (var app = Application.Connect(props))
+                    */
+                using (var app = Global.Profiles.LogIn(profile as string))
                 {
                     return handler(app);
                 }
