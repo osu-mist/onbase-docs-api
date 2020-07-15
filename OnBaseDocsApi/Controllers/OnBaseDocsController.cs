@@ -50,8 +50,8 @@ namespace OnBaseDocsApi.Controllers
                 {
                     pdf.Stream.CopyTo(stream);
 
-                    // OnBase adds extra zero bytes to the end of the PDF stream
-                    // remove them because it causes Acrobat reader to consider the
+                    // OnBase adds extra zero bytes to the end of the PDF stream.
+                    // Remove them because it causes Acrobat Reader to consider the
                     // PDF corrupt.
                     var result = new HttpResponseMessage(HttpStatusCode.OK)
                     {
