@@ -50,9 +50,14 @@ namespace OnBaseDocsApi.Controllers
                 {
                     pdf.Stream.CopyTo(stream);
 
+                    /**
+                     * OnBase adds extra zero bytes to the end of the PDF stream.
+                     * Remove them because it causes Acrobat Reader to consider the
+                     * PDF corrupt.
+                     */
                     var result = new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        Content = new ByteArrayContent(stream.GetBuffer())
+                        Content = new ByteArrayContent(TrimAfterEOF(stream.GetBuffer()))
                     };
                     result.Content.Headers.ContentDisposition =
                         new ContentDispositionHeaderValue("inline")
@@ -65,6 +70,15 @@ namespace OnBaseDocsApi.Controllers
                     return ResponseMessage(result);
                 }
             });
+        }
+
+        byte[] TrimAfterEOF(byte[] content)
+        {
+            int eofPos = -1;
+            for (int i = content.Length - 1; content[i] == 0; i--)
+                eofPos = i;
+
+            return content.Take(eofPos).ToArray();
         }
 
         [HttpPost]
