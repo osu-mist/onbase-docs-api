@@ -17,8 +17,7 @@ namespace OnBaseDocsApi.Attributes
             }
 
             var profile = profiles.First();
-            var creds = Global.Profiles.GetProfile(profile);
-            if (creds == null)
+            if (!Global.Profiles.IsValid(profile))
             {
                 // The request has a profile that is not known.
                 SetUnauthorizedResult(actionContext, $"The account profile '{profile}' is not valid.");
