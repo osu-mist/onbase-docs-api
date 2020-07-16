@@ -10,9 +10,9 @@ namespace OnBaseDocsApi.Models
         public string DataSource { get; set; }
         public string DocIndexKeyName { get; set; }
         public string StagingDocType { get; set; }
-        public Dictionary<string, Credentiall>> Profiles { get; set; }
+        public Dictionary<string, Credential> Profiles { get; set; }
         public string Port { get; set; }
         public string AdminPort { get; set; }
-        public Credentiall  Authentication { get; set; }
+        public Credential  Authentication { get; set; }
     }
 }

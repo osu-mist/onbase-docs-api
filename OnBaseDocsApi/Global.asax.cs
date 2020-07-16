@@ -12,7 +12,7 @@ namespace OnBaseDocsApi
     public class Global : HttpApplication
     {
         public static ApiConfig Config { get; private set; }
-        public static Profiles Profiles { get; private set; }
+        public static ProfileCollection Profiles { get; private set; }
 
         protected void Application_Start()
         {
@@ -44,7 +44,12 @@ namespace OnBaseDocsApi
             }
 
             // Load profiles
-            Profiles = new Profiles(Config.Profiles);
+            Profiles = new ProfileCollection(Config.Profiles);
+        }
+
+        protected void Application_End(object sender, EventArgs e)
+        {
+            Profiles.Dispose();
         }
 
         string ReplaceVar(Regex r, string val)

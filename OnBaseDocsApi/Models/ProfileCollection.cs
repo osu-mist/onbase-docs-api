@@ -6,32 +6,40 @@ using Hyland.Unity;
 
 namespace OnBaseDocsApi.Models
 {
-    public class Profiles
+    public class ProfileCollection : IDisposable
     {
         readonly object Lock = new object();
 
-        Dictionary<string, Profile> _profiles;
+        Dictionary<string, Profile> Profiles;
 
-        public Profiles(Dictionary<string, Credential> credentials)
+        public ProfileCollection(Dictionary<string, Credential> credentials)
         {
-            _profiles = credentials.ToDictionary(
+            Profiles = credentials.ToDictionary(
                 x => x.Key,
                 x => new Profile
                 {
                     Application = null,
                     Credential = x.Value,
                 });
-            LogInAll(_profiles);
+            LogInAll(Profiles);
+        }
+
+        public bool IsValid(string profileName)
+        {
+            if (!Profiles.ContainsKey(profileName))
+                return false;
+
+            var profile = Profiles[profileName];
+            return profile.Application != null;
         }
 
         public Application LogIn(string profileName)
         {
-            var profile = _profiles[profileName];
+            var profile = Profiles[profileName];
             if (profile.Application == null)
             {
-                // Log in should have happened at startup or last refresh. It's
-                // possible
-                throw new Exception("Application has not been initially logged in.");
+                // Log in should have happened at startup or last refresh.
+                throw new Exception("Application has not initially logged in.");
             }
 
             // Log in using the session ID.
@@ -50,7 +58,7 @@ namespace OnBaseDocsApi.Models
             Dictionary<string, Profile> newProfiles;
             lock (Lock)
             {
-                newProfiles = _profiles.ToDictionary(
+                newProfiles = Profiles.ToDictionary(
                     x => x.Key,
                     x => new Profile
                     {
@@ -66,8 +74,8 @@ namespace OnBaseDocsApi.Models
             Dictionary<string, Profile> oldProfiles;
             lock (Lock)
             {
-                oldProfiles = _profiles;
-                _profiles = newProfiles;
+                oldProfiles = Profiles;
+                Profiles = newProfiles;
             }
 
             // Log out all of old OnBase Application.
@@ -80,13 +88,21 @@ namespace OnBaseDocsApi.Models
 
             Task.WaitAll(profiles.Select(profile => Task.Run(() =>
             {
-                var props = Application.CreateOnBaseAuthenticationProperties(
-                    config.ServiceUrl,
-                    profile.Value.Credential.Username,
-                    profile.Value.Credential.Password,
-                    config.DataSource
-                );
-                profile.Value.Application = Application.Connect(props);
+                try
+                {
+                    var props = Application.CreateOnBaseAuthenticationProperties(
+                        config.ServiceUrl,
+                        profile.Value.Credential.Username,
+                        profile.Value.Credential.Password,
+                        config.DataSource
+                    );
+                    profile.Value.Application = Application.Connect(props);
+                }
+                catch
+                {
+                    // TODO: Log the error.
+                    profile.Value.Application = null;
+                }
             })).ToArray());
         }
 
@@ -94,22 +110,31 @@ namespace OnBaseDocsApi.Models
         {
             Task.WaitAll(profiles.Select(profile => Task.Run(() =>
             {
-                profile.Value.Application.Disconnect();
-                profile.Value.Application = null;
+                try
+                {
+                    if (profile.Value.Application != null)
+                    {
+                        profile.Value.Application.Disconnect();
+                        profile.Value.Application = null;
+                    }
+                }
+                catch
+                {
+                    // TODO: Log the error.
+                    profile.Value.Application = null;
+                }
             })).ToArray());
+        }
+
+        public void Dispose()
+        {
+            LogOutAll(Profiles);
         }
 
         class Profile
         {
             public Credential Credential { get; set; }
             public Application Application { get; set; }
-        }
-
-        public class ProfileNotFoundException : Exception
-        {
-            public ProfileNotFoundException()
-            {
-            }
         }
     }
 }
