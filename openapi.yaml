@@ -28,6 +28,24 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumber'
         - $ref: '#/components/parameters/pageSize'
+        - in: query
+          name: filter[indexKey]
+          description: Search documents by index key
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: filter[typeGroup]
+          description: Search documents by type group
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: filter[startDocId]
+          description: Search documents by startDocId
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Successful GET request
