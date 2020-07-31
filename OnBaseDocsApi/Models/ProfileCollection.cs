@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using Hyland.Unity;
@@ -9,19 +10,21 @@ namespace OnBaseDocsApi.Models
     public class ProfileCollection : IDisposable
     {
         readonly object Lock = new object();
-
-        Dictionary<string, Profile> Profiles;
+        readonly ConcurrentDictionary<string, Profile> Profiles =
+            new ConcurrentDictionary<string, Profile>();
 
         public ProfileCollection(Dictionary<string, Credential> credentials)
         {
-            Profiles = credentials.ToDictionary(
-                x => x.Key,
-                x => new Profile
+            foreach (var cred in credentials)
+            {
+                Profiles[cred.Key] = new Profile
                 {
                     Application = null,
-                    Credential = x.Value,
-                });
-            LogInAll(Profiles);
+                    Credential = cred.Value,
+                };
+            }
+
+            LogInAll();
         }
 
         public bool IsValid(string profileName)
@@ -30,12 +33,26 @@ namespace OnBaseDocsApi.Models
                 return false;
 
             var profile = Profiles[profileName];
+
+            if (profile.Application == null)
+            {
+                // We don't have an OnBase application for this profile, try to create one.
+                profile.Application = LogIn(Global.Config, profile.Credential);
+            }
+
             return profile.Application != null;
         }
 
         public Application LogIn(string profileName)
         {
+            var config = Global.Config;
             var profile = Profiles[profileName];
+
+            if (profile.Application == null)
+            {
+                // We don't have an OnBase application for this profile, try to create one.
+                profile.Application = LogIn(config, profile.Credential);
+            }
             if (profile.Application == null)
             {
                 // Log in should have happened at startup or last refresh.
@@ -43,7 +60,6 @@ namespace OnBaseDocsApi.Models
             }
 
             // Log in using the session ID.
-            var config = Global.Config;
             var props = Application.CreateSessionIDAuthenticationProperties(
                 config.ServiceUrl,
                 profile.Application.SessionID,
@@ -54,61 +70,62 @@ namespace OnBaseDocsApi.Models
 
         public void Refresh()
         {
-            // Make a copy of the existing credentials.
-            Dictionary<string, Profile> newProfiles;
-            lock (Lock)
-            {
-                newProfiles = Profiles.ToDictionary(
-                    x => x.Key,
-                    x => new Profile
-                    {
-                        Application = null,
-                        Credential = x.Value.Credential,
-                    });
-            }
-
-            // Login each credential so that we get a new OnBase Application.
-            LogInAll(newProfiles);
-
-            // Swap in the new profiles.
-            Dictionary<string, Profile> oldProfiles;
-            lock (Lock)
-            {
-                oldProfiles = Profiles;
-                Profiles = newProfiles;
-            }
-
-            // Log out all of old OnBase Application.
-            LogOutAll(oldProfiles);
+            LogInAll();
         }
 
-        static void LogInAll(Dictionary<string, Profile> profiles)
+        Application LogIn(ApiConfig config, Credential cred)
+        {
+            var props = Application.CreateOnBaseAuthenticationProperties(
+                config.ServiceUrl,
+                cred.Username,
+                cred.Password,
+                config.DataSource
+            );
+            return Application.Connect(props);
+        }
+
+        void LogInAll()
         {
             var config = Global.Config;
 
-            Task.WaitAll(profiles.Select(profile => Task.Run(() =>
+            Task.WaitAll(Profiles.Select(p => Task.Run(() =>
             {
                 try
                 {
-                    var props = Application.CreateOnBaseAuthenticationProperties(
-                        config.ServiceUrl,
-                        profile.Value.Credential.Username,
-                        profile.Value.Credential.Password,
-                        config.DataSource
-                    );
-                    profile.Value.Application = Application.Connect(props);
+                    var currApp = p.Value.Application;
+                    var newApp = LogIn(config, p.Value.Credential);
+                    // TODO: Log login failure error.
+
+                    if (newApp != null)
+                    {
+                        // Only update if we have a new application.
+                        Profiles[p.Key] = new Profile
+                        {
+                            Application = newApp,
+                            Credential = p.Value.Credential,
+                        };
+
+                        if (currApp != null)
+                        {
+                            /*
+                             * Wait to allow requests using the old application
+                             * to complete before releasing it.
+                             */
+                            System.Threading.Thread.Sleep(10000);
+                            currApp.Disconnect();
+                        }
+                    }
                 }
                 catch
                 {
                     // TODO: Log the error.
-                    profile.Value.Application = null;
                 }
             })).ToArray());
         }
 
-        static void LogOutAll(Dictionary<string, Profile> profiles)
+        void LogOutAll()
         {
-            Task.WaitAll(profiles.Select(profile => Task.Run(() =>
+            Task.WaitAll(Profiles.Select(profile => Task.Run(() =>
             {
                 try
                 {
@@ -128,7 +145,7 @@ namespace OnBaseDocsApi.Models
 
         public void Dispose()
         {
-            LogOutAll(Profiles);
+            LogOutAll();
         }
 
         class Profile
