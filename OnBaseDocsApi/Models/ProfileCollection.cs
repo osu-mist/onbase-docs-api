@@ -19,28 +19,18 @@ namespace OnBaseDocsApi.Models
             {
                 Profiles[cred.Key] = new Profile
                 {
+                    Name = cred.Key,
                     Application = null,
                     Credential = cred.Value,
                 };
             }
 
-            LogInAll();
+            Refresh();
         }
 
         public bool IsValid(string profileName)
         {
-            if (!Profiles.ContainsKey(profileName))
-                return false;
-
-            var profile = Profiles[profileName];
-
-            if (profile.Application == null)
-            {
-                // We don't have an OnBase application for this profile, try to create one.
-                profile.Application = LogIn(Global.Config, profile.Credential);
-            }
-
-            return profile.Application != null;
+            return Profiles.ContainsKey(profileName);
         }
 
         public Application LogIn(string profileName)
@@ -48,73 +38,95 @@ namespace OnBaseDocsApi.Models
             var config = Global.Config;
             var profile = Profiles[profileName];
 
-            if (profile.Application == null)
+            Application app;
+            // Try a session id login.
+            try
             {
-                // We don't have an OnBase application for this profile, try to create one.
-                profile.Application = LogIn(config, profile.Credential);
+                app = SessionIdLogIn(config, profile);
             }
+            catch (SessionNotFoundException)
+            {
+                // The session id was not found, try login with credentials.
+                app = null;
+            }
+
+            // If we don't have a valid OnBase application do a credential login.
+            if (app == null)
+            {
+                if (!CredentialLogIn(config, profile))
+                    throw new Exception($"OnBase login failed for profile '{profile.Name}'.");
+                app = SessionIdLogIn(config, profile);
+            }
+
+            if (app == null)
+                throw new Exception($"Could not get an OnBase application for profile {profile.Name}.");
+            return app;
+        }
+
+        Application SessionIdLogIn(ApiConfig config, Profile profile)
+        {
             if (profile.Application == null)
             {
                 // Log in should have happened at startup or last refresh.
-                throw new Exception("Application has not initially logged in.");
+                return null;
             }
 
             // Log in using the session ID.
             var props = Application.CreateSessionIDAuthenticationProperties(
                 config.ServiceUrl,
                 profile.Application.SessionID,
-                false
+                true
             );
             return Application.Connect(props);
+        }
+
+        bool CredentialLogIn(ApiConfig config, Profile profile)
+        {
+            var props = Application.CreateOnBaseAuthenticationProperties(
+                config.ServiceUrl,
+                profile.Credential.Username,
+                profile.Credential.Password,
+                config.DataSource
+            );
+            var app = Application.Connect(props);
+            if (app == null)
+                return false;
+
+            var oldApp = profile.Application;
+
+            Profiles[profile.Name] = new Profile
+            {
+                Name = profile.Name,
+                Application = app,
+                Credential = profile.Credential,
+            };
+
+            // Release the old OnBase application.
+            Task.Run(() =>
+            {
+                /*
+                 * Wait to allow requests using the old application
+                 * to login before releasing it.
+                 */
+                System.Threading.Thread.Sleep(10000);
+                oldApp.Disconnect();
+            });
+
+            return true;
         }
 
         public void Refresh()
         {
-            LogInAll();
-        }
-
-        Application LogIn(ApiConfig config, Credential cred)
-        {
-            var props = Application.CreateOnBaseAuthenticationProperties(
-                config.ServiceUrl,
-                cred.Username,
-                cred.Password,
-                config.DataSource
-            );
-            return Application.Connect(props);
-        }
-
-        void LogInAll()
-        {
             var config = Global.Config;
+            var profileNames = Profiles.Keys.ToList();
 
-            Task.WaitAll(Profiles.Select(p => Task.Run(() =>
+            // Do a credential login for all of the profiles.
+            Task.WaitAll(profileNames.Select(profileName => Task.Run(() =>
             {
                 try
                 {
-                    var currApp = p.Value.Application;
-                    var newApp = LogIn(config, p.Value.Credential);
-                    // TODO: Log login failure error.
-
-                    if (newApp != null)
-                    {
-                        // Only update if we have a new application.
-                        Profiles[p.Key] = new Profile
-                        {
-                            Application = newApp,
-                            Credential = p.Value.Credential,
-                        };
-
-                        if (currApp != null)
-                        {
-                            /*
-                             * Wait to allow requests using the old application
-                             * to complete before releasing it.
-                             */
-                            System.Threading.Thread.Sleep(10000);
-                            currApp.Disconnect();
-                        }
-                    }
+                    CredentialLogIn(config, Profiles[profileName]);
+                    // TODO: Log the error.
                 }
                 catch
                 {
@@ -150,6 +162,7 @@ namespace OnBaseDocsApi.Models
 
         class Profile
         {
+            public string Name { get; set; }
             public Credential Credential { get; set; }
             public Application Application { get; set; }
         }
