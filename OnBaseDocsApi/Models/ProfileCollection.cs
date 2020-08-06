@@ -75,7 +75,7 @@ namespace OnBaseDocsApi.Models
             var props = Application.CreateSessionIDAuthenticationProperties(
                 config.ServiceUrl,
                 profile.Application.SessionID,
-                true
+                false
             );
             return Application.Connect(props);
         }
