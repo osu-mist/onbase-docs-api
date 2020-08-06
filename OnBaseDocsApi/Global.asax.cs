@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Timers;
 using System.Web;
+using System.Web.Configuration;
 using System.Web.Http;
 using OnBaseDocsApi.Models;
 using YamlDotNet.Serialization;
@@ -13,6 +15,8 @@ namespace OnBaseDocsApi
     {
         public static ApiConfig Config { get; private set; }
         public static ProfileCollection Profiles { get; private set; }
+
+        Timer RefreshTimer;
 
         protected void Application_Start()
         {
@@ -45,10 +49,13 @@ namespace OnBaseDocsApi
 
             // Load profiles
             Profiles = new ProfileCollection(Config.Profiles);
+
+            SetTimer();
         }
 
         protected void Application_End(object sender, EventArgs e)
         {
+            RefreshTimer.Dispose();
             Profiles.Dispose();
         }
 
@@ -59,6 +66,24 @@ namespace OnBaseDocsApi
                 var key = match.Groups[1].Value.Trim();
                 return Environment.GetEnvironmentVariable(key);
             });
+        }
+
+        void SetTimer()
+        {
+            string periodStr = WebConfigurationManager.AppSettings["LogInRefreshPeriodHours"];
+
+            if (!int.TryParse(periodStr, out var period))
+                period = 24;
+
+            RefreshTimer = new Timer(period * 60 * 60 * 1000);
+            RefreshTimer.Elapsed += OnTimedEvent;
+            RefreshTimer.AutoReset = true;
+            RefreshTimer.Enabled = true;
+        }
+
+        void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            Profiles.Refresh();
         }
     }
 }
