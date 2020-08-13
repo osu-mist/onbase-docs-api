@@ -55,6 +55,11 @@ namespace OnBaseDocsApi.Models
             {
                 if (!CredentialLogIn(config, profile))
                     throw new Exception($"OnBase login failed for profile '{profile.Name}'.");
+                /*
+                 * The profile is no longer valid since there was
+                 * a credential login so lookup the profile again.
+                 */
+                profile = Profiles[profileName];
                 app = SessionIdLogIn(config, profile);
             }
 
