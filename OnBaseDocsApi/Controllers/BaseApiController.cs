@@ -18,6 +18,11 @@ namespace OnBaseDocsApi.Controllers
             };
         }
 
+        protected IHttpActionResult AccessDeniedResult(string detail)
+        {
+            return ErrorResult(HttpStatusCode.Unauthorized, "Access denied", detail);
+        }
+
         protected IHttpActionResult BadRequestResult(string detail)
         {
             return ErrorResult(HttpStatusCode.BadRequest, "Bad request", detail);
