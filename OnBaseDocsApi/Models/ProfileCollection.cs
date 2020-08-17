@@ -1,3 +1,4 @@
+//#define USE_SESSION_LOGIN
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -25,7 +26,9 @@ namespace OnBaseDocsApi.Models
                 };
             }
 
+#if USE_SESSION_LOGIN
             Refresh();
+#endif
         }
 
         public bool IsValid(string profileName)
@@ -33,6 +36,7 @@ namespace OnBaseDocsApi.Models
             return Profiles.ContainsKey(profileName);
         }
 
+#if USE_SESSION_LOGIN
         public Application LogIn(string profileName)
         {
             var config = Global.Config;
@@ -164,6 +168,32 @@ namespace OnBaseDocsApi.Models
         {
             LogOutAll();
         }
+#else
+        public Application LogIn(string profileName)
+        {
+            var config = Global.Config;
+            var profile = Profiles[profileName];
+
+            var props = Application.CreateOnBaseAuthenticationProperties(
+                config.ServiceUrl,
+                profile.Credential.Username,
+                profile.Credential.Password,
+                config.DataSource
+            );
+            var app = Application.Connect(props);
+            if (app == null)
+                throw new Exception($"Could not get an OnBase application for profile {profile.Name}.");
+            return app;
+        }
+
+        public void Refresh()
+        {
+        }
+
+        public void Dispose()
+        {
+        }
+#endif
 
         class Profile
         {
