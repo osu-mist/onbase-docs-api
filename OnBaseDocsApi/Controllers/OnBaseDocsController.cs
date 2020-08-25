@@ -226,7 +226,7 @@ namespace OnBaseDocsApi.Controllers
             var badRequestErrors = new List<Error>();
 
             if (string.IsNullOrWhiteSpace(indexKey) && string.IsNullOrWhiteSpace(typeGroup))
-                badRequestErrors.Add(BadRequestError($"At least one of filter[indexKey] or filter[typeGroup] is required."));
+                badRequestErrors.Add(BadRequestError("At least one of filter[indexKey] or filter[typeGroup] is required."));
 
             var config = Global.Config;
 
