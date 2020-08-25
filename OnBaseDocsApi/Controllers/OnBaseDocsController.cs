@@ -225,8 +225,8 @@ namespace OnBaseDocsApi.Controllers
             // We bundle the bad requests in one response.
             var badRequestErrors = new List<Error>();
 
-            if (string.IsNullOrWhiteSpace(indexKey) && string.IsNullOrWhiteSpace(typeGroup))
-                badRequestErrors.Add(BadRequestError("At least one of filter[indexKey] or filter[typeGroup] is required."));
+            if (string.IsNullOrWhiteSpace(indexKey))
+                badRequestErrors.Add(BadRequestError("The required parameter filter[indexKey] is missing."));
 
             var config = Global.Config;
 
