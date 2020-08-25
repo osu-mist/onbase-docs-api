@@ -222,26 +222,35 @@ namespace OnBaseDocsApi.Controllers
             var typeGroup = parms.Get("filter[typeGroup]", DefaultTypeGroup);
             var startDocId = parms.Get("filter[startDocId]", DefaultStartDocId);
             var pageSize = parms.Get("filter[pageSize]", DefaultPageSize);
+            // We bundle the bad requests in one response.
+            var badRequestErrors = new List<Error>();
+
+            if (string.IsNullOrWhiteSpace(indexKey) && string.IsNullOrWhiteSpace(typeGroup))
+                badRequestErrors.Add(BadRequestError($"At least one of filter[indexKey] or filter[typeGroup] is required."));
 
             var config = Global.Config;
 
             return TryHandleRequest(app =>
             {
                 DocumentTypeGroup docTypeGroup = null;
-                if (!string.IsNullOrEmpty(typeGroup))
+                if (!string.IsNullOrWhiteSpace(typeGroup))
                 {
                     docTypeGroup = app.Core.DocumentTypeGroups.Find(typeGroup);
                     if (docTypeGroup == null)
-                        return BadRequestResult($"The document type group '{typeGroup}' could not be found.");
+                        badRequestErrors.Add(BadRequestError($"The document type group '{typeGroup}' could not be found."));
                 }
 
                 var query = app.Core.CreateDocumentQuery();
                 if (query == null)
-                    return BadRequestResult("Unable to create document query.");
+                    badRequestErrors.Add(BadRequestError("Unable to create document query."));
+
+                // Check if there are any bad request errors. If there are then return them.
+                if (badRequestErrors.Any())
+                    return BadRequestResult(badRequestErrors);
 
                 if (docTypeGroup != null)
                     query.AddDocumentTypeGroup(docTypeGroup);
-                if (!string.IsNullOrEmpty(indexKey))
+                if (!string.IsNullOrWhiteSpace(indexKey))
                     query.AddKeyword(config.DocIndexKeyName, indexKey);
 
                 // The OnBase API does not support a method for paging. The closest
