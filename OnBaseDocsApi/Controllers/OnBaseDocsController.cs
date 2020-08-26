@@ -425,13 +425,13 @@ namespace OnBaseDocsApi.Controllers
                 Type = "onbaseDocument",
                 Attributes = new DocumentAttributes
                 {
-                    CreatedBy = doc.CreatedBy.ID,
+                    CreatedBy = doc.CreatedBy?.ID ?? 0,
                     DateStored = doc.DateStored,
                     DocumentDate = doc.DocumentDate,
                     Status = doc.Status.ToString(),
                     Name = doc.Name,
-                    DocumentType = doc.DocumentType.Name,
-                    DefaultFileType = doc.DefaultFileType.Name,
+                    DocumentType = doc.DocumentType?.Name ?? null,
+                    DefaultFileType = doc.DefaultFileType?.Name ?? null,
                     LatestAllowedRevisionID = doc.LatestAllowedRevisionID,
                     Keywords = keywords,
                 }
