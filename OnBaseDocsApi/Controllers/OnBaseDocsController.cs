@@ -74,8 +74,9 @@ namespace OnBaseDocsApi.Controllers
 
         byte[] TrimAfterEOF(byte[] content)
         {
-            int eofPos = -1;
-            for (int i = content.Length - 1; content[i] == 0; i--)
+            int eofPos = content.Length;
+
+            for (int i = eofPos - 1; content[i] == 0; i--)
                 eofPos = i;
 
             return content.Take(eofPos).ToArray();
