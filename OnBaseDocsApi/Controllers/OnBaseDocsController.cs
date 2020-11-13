@@ -168,44 +168,32 @@ namespace OnBaseDocsApi.Controllers
 
             return TryHandleRequest(app =>
             {
-                // The document is moved to staging when there are no keywords included
-                // so that we can kick off a re-index to generate the autofill keywords.
-                bool toStaging = (docAttr.Keywords == null) || !docAttr.Keywords.Any();
-
-                // When going to staging, confirm that the final doc type is actually valid.
-                DocumentType finalDocType = null;
-                if (toStaging)
-                {
-                    finalDocType = app.Core.DocumentTypes.Find(docAttr.DocumentType);
-                    if (finalDocType == null)
-                        return BadRequestResult($"The DocumentType '{docAttr.DocumentType}' could not be found.");
-                }
+                // Validate that the doc type is actually valid.
+                var docType = app.Core.DocumentTypes.Find(docAttr.DocumentType);
+                if (docType == null)
+                    errors.Add(BadRequestError($"The DocumentType '{docAttr.DocumentType}' could not be found."));
 
                 var createAttr = new DocumentCreateAttributes
                 {
-                    DocumentType = toStaging ? Global.Config.StagingDocType : docAttr.DocumentType,
+                    DocumentType = Global.Config.StagingDocType,
                     Comment = docAttr.Comment,
                     IndexKey = docAttr.IndexKey,
                     Keywords = docAttr.Keywords,
                     FileType = docAttr.FileType ?? docExtension,
                     FileExtension = docExtension,
                     Stream = docStream,
-                    ToStaging = toStaging,
                 };
-                var error = CreateDocument(app, createAttr, out var doc);
+                var error = CreateDocument(errors, app, createAttr, out var doc);
                 if (error != null)
                     return error;
 
-                if (toStaging)
+                // We must get the document ID from this thread and not the task thread since
+                // the document could go out of scope before the task starts.
+                var docId = doc.ID;
+                Task.Run(() =>
                 {
-                    // We must get the document ID from this thread and not the task thread since
-                    // the document could go out of scope before the task starts.
-                    var docId = doc.ID;
-                    Task.Run(() =>
-                    {
-                        MoveDocumentToWorkflow(docId, finalDocType);
-                    });
-                }
+                    MoveDocumentToWorkflow(docId, docType);
+                });
 
                 return DocumentResult(doc, true);
             });
@@ -292,11 +280,9 @@ namespace OnBaseDocsApi.Controllers
         /// return null, then the out parameter doc is guaranteed to be valid.
         /// </summary>
         /// <returns>An error result or null. A null result indicates that the document was created successfully.</returns>
-        IHttpActionResult CreateDocument(Application app, DocumentCreateAttributes attr, out Document doc)
+        IHttpActionResult CreateDocument(List<Error> errors, Application app, DocumentCreateAttributes attr, out Document doc)
         {
             doc = null;
-
-            var errors = new List<Error>();
 
             var docType = app.Core.DocumentTypes.Find(attr.DocumentType);
             if (docType == null)
@@ -310,12 +296,12 @@ namespace OnBaseDocsApi.Controllers
             if (pageData == null)
                 errors.Add(BadRequestError($"Unable to create page data for '{attr.FileExtension}'."));
 
-            if (errors.Any())
-                return BadRequestResult(errors);
-
             var props = app.Core.Storage.CreateStoreNewDocumentProperties(docType, fileType);
             if (props == null)
                 return BadRequestResult($"Unable to create document properties for '{attr.DocumentType}' and '{attr.FileType}'.");
+
+            if (errors.Any())
+                return BadRequestResult(errors);
 
             props.AddKeyword(Global.Config.DocIndexKeyName, attr.IndexKey);
             props.DocumentDate = DateTime.Now;
