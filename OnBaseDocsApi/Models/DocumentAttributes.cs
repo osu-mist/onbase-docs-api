@@ -9,6 +9,7 @@ namespace OnBaseDocsApi.Models
         public DateTime DateStored { get; set; }
         public DateTime DocumentDate { get; set; }
         public string DocumentType { get; set; }
+        public string ReindexDocumentType { get; set; }
         public string Status { get; set; }
         public string Name { get; set; }
         public long LatestAllowedRevisionID { get; set; }

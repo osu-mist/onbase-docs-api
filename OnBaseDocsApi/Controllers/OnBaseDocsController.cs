@@ -33,7 +33,7 @@ namespace OnBaseDocsApi.Controllers
         {
             return TryHandleDocRequest(id, (_, doc) =>
             {
-                return DocumentResult(doc, false);
+                return DocumentResult(doc);
             });
         }
 
@@ -195,7 +195,7 @@ namespace OnBaseDocsApi.Controllers
                     MoveDocumentToWorkflow(docId, docType);
                 });
 
-                return DocumentResult(doc, true);
+                return DocumentResult(doc, docAttr.DocumentType);
             });
         }
 
@@ -373,26 +373,30 @@ namespace OnBaseDocsApi.Controllers
             }
         }
 
-        IHttpActionResult DocumentResult(Document doc, bool createdDoc)
+        IHttpActionResult DocumentResult(Document doc, string createdDocType = null)
         {
             var config = Global.Config;
 
             var endpointUri = $"{config.ApiHost}/{config.ApiBasePath}";
             var selfUri = $"{endpointUri}/{doc.ID}";
+            var docResource = DocumentResource(doc);
+
+            if (!string.IsNullOrWhiteSpace(createdDocType))
+                docResource.Attributes.ReindexDocumentType = createdDocType;
 
             var result = new DataResult<DocumentAttributes>
             {
-                Data = DocumentResource(doc),
+                Data = docResource,
                 Links = new DataLinks
                 {
                     Self = endpointUri,
                 }
             };
 
-            if (createdDoc)
-                return Created(selfUri, result);
-            else
+            if (string.IsNullOrWhiteSpace(createdDocType))
                 return Ok(result);
+            else
+                return Created(selfUri, result);
         }
 
         DataResource<DocumentAttributes> DocumentResource(Document doc)
