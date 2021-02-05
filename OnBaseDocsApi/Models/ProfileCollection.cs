@@ -115,6 +115,7 @@ namespace OnBaseDocsApi.Models
                  */
                 System.Threading.Thread.Sleep(10000);
                 oldApp.Disconnect();
+                oldApp.Dispose();
             });
 
             return true;
@@ -149,6 +150,7 @@ namespace OnBaseDocsApi.Models
                     if (profile.Value.Application != null)
                     {
                         profile.Value.Application.Disconnect();
+                        profile.Value.Application.Dispose();
                         profile.Value.Application = null;
                     }
                 }
