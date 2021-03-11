@@ -25,6 +25,7 @@ namespace OnBaseDocsApi.Controllers
         const string DefaultIndexKey = "";
         const string DefaultTypeGroup = "";
         const string DefaultDocType = "";
+        const string DefaultKeywords = "";
         const long DefaultStartDocId = 0;
         const int DefaultPageSize = 25;
 
@@ -221,7 +222,7 @@ namespace OnBaseDocsApi.Controllers
             // Read the keywords.
             //
             var filterKeywords = new Dictionary<string, string>();
-            var keywordsParam = parms.Get("filter[keywords][hasAll]", string.Empty);
+            var keywordsParam = parms.Get("filter[keywords][hasAll]", DefaultKeywords);
             if (!string.IsNullOrWhiteSpace(keywordsParam))
             {
                 foreach (var kw in keywordsParam.Split('|'))
@@ -301,7 +302,7 @@ namespace OnBaseDocsApi.Controllers
                 builder.Add("filter[type]", filterDocType, DefaultDocType);
                 builder.Add("filter[startDocId]", filterStartDocId, DefaultStartDocId);
                 builder.Add("filter[pageSize]", filterPageSize, DefaultPageSize);
-                builder.Add("filter[keywords][hasAll]", keywordsParam, string.Empty);
+                builder.Add("filter[keywords][hasAll]", keywordsParam, DefaultKeywords);
                 var queryStr = builder.ToString();
 
                 return Ok(new ListResult<DocumentAttributes>
