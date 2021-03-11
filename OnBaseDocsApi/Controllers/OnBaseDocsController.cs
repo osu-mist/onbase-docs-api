@@ -24,6 +24,7 @@ namespace OnBaseDocsApi.Controllers
     {
         const string DefaultIndexKey = "";
         const string DefaultTypeGroup = "";
+        const string DefaultDocType = "";
         const long DefaultStartDocId = 0;
         const int DefaultPageSize = 25;
 
@@ -207,26 +208,57 @@ namespace OnBaseDocsApi.Controllers
         public IHttpActionResult ListDocs()
         {
             var parms = new ParamCollection(Request.RequestUri.ParseQueryString());
-            var indexKey = parms.Get("filter[indexKey]", DefaultIndexKey);
-            var typeGroup = parms.Get("filter[typeGroup]", DefaultTypeGroup);
-            var startDocId = parms.Get("filter[startDocId]", DefaultStartDocId);
-            var pageSize = parms.Get("filter[pageSize]", DefaultPageSize);
+            var filterIndexKey = parms.Get("filter[indexKey]", DefaultIndexKey);
+            var filterDocTypeGroup = parms.Get("filter[typeGroup]", DefaultTypeGroup);
+            var filterDocType = parms.Get("filter[type]", DefaultDocType);
+            var filterStartDocId = parms.Get("filter[startDocId]", DefaultStartDocId);
+            var filterPageSize = parms.Get("filter[pageSize]", DefaultPageSize);
+
             // We bundle the bad requests in one response.
             var badRequestErrors = new List<Error>();
 
-            if (string.IsNullOrWhiteSpace(indexKey))
-                badRequestErrors.Add(BadRequestError("The required parameter filter[indexKey] is missing."));
+            //
+            // Read the keywords.
+            //
+            var filterKeywords = new Dictionary<string, string>();
+            var keywordsParam = parms.Get("filter[keywords][hasAll]", string.Empty);
+            if (!string.IsNullOrWhiteSpace(keywordsParam))
+            {
+                foreach (var kw in keywordsParam.Split('|'))
+                {
+                    var parts = kw.Split(':');
+                    if (parts.Length == 2)
+                    {
+                        filterKeywords[parts[0]] = parts[1];
+                    }
+                    else
+                    {
+                        badRequestErrors.Add(BadRequestError("The filter[keywords][hasAll] parameter is not valid."));
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(filterIndexKey) && string.IsNullOrWhiteSpace(filterDocType))
+                badRequestErrors.Add(BadRequestError("One of filter[indexKey] or filter[type] parameters is required."));
 
             var config = Global.Config;
 
             return TryHandleRequest(app =>
             {
                 DocumentTypeGroup docTypeGroup = null;
-                if (!string.IsNullOrWhiteSpace(typeGroup))
+                if (!string.IsNullOrWhiteSpace(filterDocTypeGroup))
                 {
-                    docTypeGroup = app.Core.DocumentTypeGroups.Find(typeGroup);
+                    docTypeGroup = app.Core.DocumentTypeGroups.Find(filterDocTypeGroup);
                     if (docTypeGroup == null)
-                        badRequestErrors.Add(BadRequestError($"The document type group '{typeGroup}' could not be found."));
+                        badRequestErrors.Add(BadRequestError($"The document type group '{filterDocTypeGroup}' could not be found."));
+                }
+
+                DocumentType docType = null;
+                if (!string.IsNullOrWhiteSpace(filterDocType))
+                {
+                    docType = app.Core.DocumentTypes.Find(filterDocType);
+                    if (docType == null)
+                        badRequestErrors.Add(BadRequestError($"The document type '{filterDocType}' could not be found."));
                 }
 
                 var query = app.Core.CreateDocumentQuery();
@@ -239,14 +271,20 @@ namespace OnBaseDocsApi.Controllers
 
                 if (docTypeGroup != null)
                     query.AddDocumentTypeGroup(docTypeGroup);
-                if (!string.IsNullOrWhiteSpace(indexKey))
-                    query.AddKeyword(config.DocIndexKeyName, indexKey);
+                if (docType != null)
+                    query.AddDocumentType(docType);
+                if (!string.IsNullOrWhiteSpace(filterIndexKey))
+                    query.AddKeyword(config.DocIndexKeyName, filterIndexKey);
+
+                // Add the keywords to the query.
+                foreach (var keyword in filterKeywords)
+                    query.AddKeyword(keyword.Key, keyword.Value);
 
                 // The OnBase API does not support a method for paging. The closest
                 // we can get is to use a starting document ID.
                 query.AddSort(DocumentQuery.SortAttribute.DocumentID, true);
-                query.AddDocumentRange(startDocId, long.MaxValue);
-                var queryResults = query.Execute(pageSize);
+                query.AddDocumentRange(filterStartDocId, long.MaxValue);
+                var queryResults = query.Execute(filterPageSize);
                 if (queryResults == null)
                     return InternalErrorResult("Document query returned null.");
 
@@ -258,10 +296,12 @@ namespace OnBaseDocsApi.Controllers
 
                 // Generate the query string for this request.
                 var builder = new QueryStringBuilder();
-                builder.Add("filter[indexKey]", indexKey, DefaultIndexKey);
-                builder.Add("filter[typeGroup]", typeGroup, DefaultTypeGroup);
-                builder.Add("filter[startDocId]", startDocId, DefaultStartDocId);
-                builder.Add("filter[pageSize]", pageSize, DefaultPageSize);
+                builder.Add("filter[indexKey]", filterIndexKey, DefaultIndexKey);
+                builder.Add("filter[typeGroup]", filterDocTypeGroup, DefaultTypeGroup);
+                builder.Add("filter[type]", filterDocType, DefaultDocType);
+                builder.Add("filter[startDocId]", filterStartDocId, DefaultStartDocId);
+                builder.Add("filter[pageSize]", filterPageSize, DefaultPageSize);
+                builder.Add("filter[keywords][hasAll]", keywordsParam, string.Empty);
                 var queryStr = builder.ToString();
 
                 return Ok(new ListResult<DocumentAttributes>
