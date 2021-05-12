@@ -19,11 +19,11 @@ security:
   - OAuth2:
       - full
 paths:
-  /documents:
+  /onbase-docs:
     get:
       summary: Get documents
       tags:
-        - documents
+        - onbase-docs
       operationId: getDocuments
       parameters:
         - $ref: '#/components/parameters/pageNumber'
@@ -58,7 +58,7 @@ paths:
     post:
       summary: Create a new document
       tags:
-        - documents
+        - onbase-docs
       operationId: postDocument
       requestBody:
         $ref: '#/components/requestBodies/DocumentPostBody'
@@ -73,11 +73,11 @@ paths:
           $ref: '#/components/responses/409Post'
         '500':
           $ref: '#/components/responses/500'
-  '/documents/{id}':
+  /onbase-docs/{id}:
     get:
       summary: Get a single document
       tags:
-        - documents
+        - onbase-docs
       operationId: getDocumentById
       parameters:
         - $ref: '#/components/parameters/documentId'
@@ -95,7 +95,7 @@ paths:
     patch:
       summary: Update an existing document
       tags:
-        - documents
+        - onbase-docs
       operationId: patchDocumentById
       parameters:
         - $ref: '#/components/parameters/documentId'
@@ -114,11 +114,11 @@ paths:
           $ref: '#/components/responses/409Patch'
         '500':
           $ref: '#/components/responses/500'
-  '/documents/{id}/file':
+  /onbase-docs/{id}/file:
     get:
       summary: Get a document's file
       tags:
-        - documents
+        - onbase-docs
       operationId: getFileByDocumentId
       parameters:
         - $ref: '#/components/parameters/documentId'
