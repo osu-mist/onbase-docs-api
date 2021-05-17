@@ -53,6 +53,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DocumentSetResult'
+        '400':  
+          $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
     post:
