@@ -32,20 +32,38 @@ paths:
           name: filter[indexKey]
           description: Search documents by index key
           required: false
+          example: 47779366
+          schema:
+            type: integer
+        - in: query
+          name: filter[type]
+          description: Search documents by document type 
+          required: false
+          example: TEST - Test Documents
           schema:
             type: string
         - in: query
           name: filter[typeGroup]
-          description: Search documents by type group
+          description: Search documents by document type group
           required: false
+          example: TEST
           schema:
             type: string
         - in: query
           name: filter[startDocId]
-          description: Search documents by startDocId
+          description: Filter documents by minimum document Id
           required: false
+          example: 47779366
+          schema:
+            type: integer
+        - in: query
+          name: filter[keywords][hasAll]
+          description: Filter documents by a list of keywords
+          required: false
+          example: DOC - Index Key:999999999|SECKEY - Delete Flag:No
           schema:
             type: string
+            pattern: keyword:value|keyword:value
       responses:
         '200':
           description: Successful GET request
@@ -171,7 +189,7 @@ components:
       description: The ID of a document
       required: true
       schema:
-        type: string
+        type: integer
   requestBodies:
     DocumentPostBody:
       required: true
