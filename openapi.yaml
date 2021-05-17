@@ -327,24 +327,48 @@ components:
         createdBy:
           type: integer
           format: int64
+          description: Id of profile which created the document
+          example: 20048
         dateStored:
           type: string
+          format: date-time
+          description: Date this document was uploaded to onbase
+          example: '2021-04-28T15:59:22+00:00'
         documentDate:
           type: string
+          format: date-time
+          description: Date associated with the uploaded document
+          example: '2021-04-28T15:59:22+00:00'
         documentType:
           type: string
+          description: Type associated with the document
+          example: Test - Test Documents
+        reindexDocumentType:
+          type: string
+          description: Holds the final document type while the document goes through the staging process
+          example: Test - Test Documents
         status:
           type: string
+          description: status of this document
+          example: Active
         name:
           type: string
+          description: title of the document
+          example: 999744823 Brando, Dio,   - TEST - Test Documents
         id:
           type: integer
           format: int64
+          description: Unique identifier for this document
+          example: 47779365
         latestAllowedRevisionId:
           type: integer
           format: int64
+          description: Id of profile that last revised the document
+          example: 20048
         defaultFileType:
           type: string
+          description: Assumed file type for this document
+          example: PDF
         keywords:
           type: array
           items:
@@ -352,8 +376,10 @@ components:
             properties:
               name:
                 type: string
+                example: DOC - Index Key
               value:
                 type: string
+                example: 999999999
       additionalProperties: false
     DocumentGetResource:
       type: object
