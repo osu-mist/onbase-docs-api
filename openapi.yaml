@@ -382,10 +382,10 @@ components:
     DocumentGetResource:
       type: object
       properties:
-        type:
-          $ref: '#/components/schemas/DocumentType'
         id:
           $ref: '#/components/schemas/DocumentId'
+        type:
+          $ref: '#/components/schemas/DocumentType'
         attributes:
           $ref: '#/components/schemas/DocumentGetAttributes'
         links:
