@@ -196,21 +196,17 @@ components:
       content:
         multipart/form-data:
           schema:
-            allOf:
-              - type: object
-                required:
-                  - documentFile
-                properties:
-                  documentFile:
-                    type: string
-                    format: binary
-              - type: object
-                required:
-                  - data
-                properties:
-                  data:
-                    $ref: '#/components/schemas/DocumentPostResource'
-                additionalProperties: false
+            type: object
+            required:
+              - attributes
+              - file
+            properties:
+              attributes:
+                $ref: '#/components/schemas/DocumentPostResource'
+              file:
+                type: string
+                format: binary
+            additionalProperties: false
     DocumentPatchBody:
       description: REPLACEME
       required: true
