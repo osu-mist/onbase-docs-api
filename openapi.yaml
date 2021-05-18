@@ -315,7 +315,7 @@ components:
     DocumentType:
       type: string
       enum:
-        - document
+        - onbaseDocument
     DocumentAttributes:
       type: object
       properties:
