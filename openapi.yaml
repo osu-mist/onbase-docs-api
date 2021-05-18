@@ -112,28 +112,6 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-    patch:
-      summary: Update an existing document
-      tags:
-        - onbase-docs
-      operationId: patchDocumentById
-      parameters:
-        - $ref: '#/components/parameters/documentId'
-      requestBody:
-        $ref: '#/components/requestBodies/DocumentPatchBody'
-      responses:
-        '200':
-          description: Successful update
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentResult'
-        '404':
-          $ref: '#/components/responses/404'
-        '409':
-          $ref: '#/components/responses/409Patch'
-        '500':
-          $ref: '#/components/responses/500'
   /onbase-docs/{id}/file:
     get:
       summary: Get a document's file
