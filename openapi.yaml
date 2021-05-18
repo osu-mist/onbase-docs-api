@@ -26,8 +26,6 @@ paths:
         - onbase-docs
       operationId: getDocuments
       parameters:
-        - $ref: '#/components/parameters/pageNumber'
-        - $ref: '#/components/parameters/pageSize'
         - in: query
           name: filter[indexKey]
           description: Search documents by index key
@@ -439,12 +437,7 @@ components:
       type: object
       properties:
         links:
-          type: object
-          allOf:
-            - $ref: '#/components/schemas/SelfLink'
-            - $ref: '#/components/schemas/PaginationLinks'
-        meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: '#/components/schemas/SelfLink'
         data:
           type: array
           items:
