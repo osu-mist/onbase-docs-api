@@ -187,6 +187,7 @@ components:
       name: id
       in: path
       description: The ID of a document
+      example: 999999999
       required: true
       schema:
         type: integer
