@@ -4,6 +4,9 @@ dataSource: testDatabaseName
 serviceUrl: https://onbase-url.com
 docIndexKeyName: Index Key Sample
 stagingDocType: Staging Sample
+hash:
+  salt: sample-salt
+  secret: sample-secret
 port: ${PORT}
 adminPort: ${ADMIN_PORT}
 authentication:

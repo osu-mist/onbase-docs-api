@@ -33,6 +33,11 @@ namespace OnBaseDocsApi.Controllers
             return ErrorResult(HttpStatusCode.BadRequest, errors);
         }
 
+        protected IHttpActionResult ForbiddenResult(string detail)
+        {
+            return ErrorResult(HttpStatusCode.Forbidden, "Forbidden", detail);
+        }
+
         protected IHttpActionResult NotFoundResult(string title, string detail)
         {
             return ErrorResult(HttpStatusCode.NotFound, title, detail);
