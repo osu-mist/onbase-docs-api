@@ -56,9 +56,9 @@ namespace OnBaseDocsApi.Controllers
 
         [HttpGet]
         [ActionName("Secure")]
-        public IHttpActionResult SecureGet(string id, [FromUri]long osuId)
+        public IHttpActionResult SecureGet(string hashId, [FromUri]long osuId)
         {
-            var json = TryDecryptString(id, $"{HashSecret}:{osuId}");
+            var json = TryDecryptString(hashId, $"{HashSecret}:{osuId}");
             if (string.IsNullOrWhiteSpace(json))
                 return ForbiddenResult("Access to this document is not allowed.");
 
@@ -77,7 +77,7 @@ namespace OnBaseDocsApi.Controllers
 
             return TryHandleDocRequest(data.DocId, (_, doc) =>
             {
-                return DocumentResult(doc, id);
+                return DocumentResult(doc, hashId);
             });
         }
 
@@ -90,9 +90,9 @@ namespace OnBaseDocsApi.Controllers
 
         [HttpGet]
         [ActionName("SecureFile")]
-        public IHttpActionResult SecureGetFile(string id, [FromUri] long osuId)
+        public IHttpActionResult SecureGetFile(string hashId, [FromUri] long osuId)
         {
-            var json = TryDecryptString(id, $"{HashSecret}:{osuId}");
+            var json = TryDecryptString(hashId, $"{HashSecret}:{osuId}");
             if (string.IsNullOrWhiteSpace(json))
                 return ForbiddenResult("Access to this document is not allowed.");
 

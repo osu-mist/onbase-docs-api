@@ -17,17 +17,17 @@ namespace OnBaseDocsApi
             config.MapHttpAttributeRoutes();
             config.Routes.MapHttpRoute(
                 name: "ApiSecureList",
-                routeTemplate: "api/v1/onbase-docs/Secure",
+                routeTemplate: "api/v1/onbase-docs/secure",
                 defaults: new { controller = "onbasedocs", action = "Secure" }
             );
             config.Routes.MapHttpRoute(
                 name: "ApiSecureGet",
-                routeTemplate: "api/v1/onbase-docs/Secure/{id}",
+                routeTemplate: "api/v1/onbase-docs/secure/{hashId}",
                 defaults: new { controller = "onbasedocs", action = "Secure" }
             );
             config.Routes.MapHttpRoute(
                 name: "ApiSecureGetFile",
-                routeTemplate: "api/v1/onbase-docs/Secure/{id}/File",
+                routeTemplate: "api/v1/onbase-docs/secure/{hashId}/file",
                 defaults: new { controller = "onbasedocs", action = "SecureFile" }
             );
             config.Routes.MapHttpRoute(
