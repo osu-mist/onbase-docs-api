@@ -14,5 +14,6 @@ namespace OnBaseDocsApi.Models
         public string Port { get; set; }
         public string AdminPort { get; set; }
         public Credential  Authentication { get; set; }
+        public HashConfig Hash { get; set; }
     }
 }

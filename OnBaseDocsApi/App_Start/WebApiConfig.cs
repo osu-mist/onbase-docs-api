@@ -16,6 +16,21 @@ namespace OnBaseDocsApi
             // Web API routes
             config.MapHttpAttributeRoutes();
             config.Routes.MapHttpRoute(
+                name: "ApiSecureList",
+                routeTemplate: "api/v1/onbase-docs/Secure",
+                defaults: new { controller = "onbasedocs", action = "Secure" }
+            );
+            config.Routes.MapHttpRoute(
+                name: "ApiSecureGet",
+                routeTemplate: "api/v1/onbase-docs/Secure/{id}",
+                defaults: new { controller = "onbasedocs", action = "Secure" }
+            );
+            config.Routes.MapHttpRoute(
+                name: "ApiSecureGetFile",
+                routeTemplate: "api/v1/onbase-docs/Secure/{id}/File",
+                defaults: new { controller = "onbasedocs", action = "SecureFile" }
+            );
+            config.Routes.MapHttpRoute(
                 name: "ApiWithAction",
                 routeTemplate: "api/v1/onbase-docs/{id}/{action}",
                 defaults: new { controller = "onbasedocs" }
@@ -28,7 +43,7 @@ namespace OnBaseDocsApi
             config.Routes.MapHttpRoute(
                 name: "Default",
                 routeTemplate: "api/v1/onbase-docs",
-                defaults: new { controller = "onbasedocs" }
+                defaults: new { controller = "onbasedocs", action = "" }
             );
             config.Routes.MapHttpRoute(
                 name: "HealthCheck",

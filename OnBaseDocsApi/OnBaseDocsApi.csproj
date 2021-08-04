@@ -101,6 +101,10 @@
     <Compile Include="Models\QueryStringBuilder.cs" />
     <Compile Include="Attributes\VerifyProfileHeaderAttribute.cs" />
     <Compile Include="Attributes\BaseAttribute.cs" />
+    <Compile Include="Models\DocListFilter.cs" />
+    <Compile Include="Models\HashConfig.cs" />
+    <Compile Include="Models\SecureDocumentAttributes.cs" />
+    <Compile Include="Models\SecureData.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

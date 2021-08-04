@@ -6,6 +6,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Hyland.Types;
 using Hyland.Unity;
@@ -28,6 +30,19 @@ namespace OnBaseDocsApi.Controllers
         const string DefaultKeywords = "";
         const long DefaultStartDocId = 0;
         const int DefaultPageSize = 25;
+        const int DefaultTimeToLive = 24;
+        const int MaxHashLen = 10 * 1024;
+
+        static readonly byte[] HashSalt;
+        static readonly string HashSecret;
+
+        static OnBaseDocsController()
+        {
+            var config = Global.Config.Hash;
+
+            HashSalt = Encoding.ASCII.GetBytes(config.Salt);
+            HashSecret = config.Secret;
+        }
 
         [HttpGet]
         [ActionName("")]
@@ -40,10 +55,66 @@ namespace OnBaseDocsApi.Controllers
         }
 
         [HttpGet]
+        [ActionName("Secure")]
+        public IHttpActionResult SecureGet(string id, [FromUri]long osuId)
+        {
+            var json = TryDecryptString(id, $"{HashSecret}:{osuId}");
+            if (string.IsNullOrWhiteSpace(json))
+                return ForbiddenResult("Access to this document is not allowed.");
+
+            var data = JsonConvert.DeserializeObject<SecureData>(json);
+
+            /*
+             * The OSU ID should match or the decryption would fail.
+             * Just in case, validate OSU ID.
+             */
+            if (data.OsuId != osuId)
+                return ForbiddenResult("The user does not have access to this document.");
+
+            var now = DateTime.UtcNow;
+            if (!((data.ActiveStart <= now) && (now <= data.ActiveEnd)))
+                return ForbiddenResult("Access to this document has expired.");
+
+            return TryHandleDocRequest(data.DocId, (_, doc) =>
+            {
+                return DocumentResult(doc, id);
+            });
+        }
+
+        [HttpGet]
         [ActionName("File")]
         public IHttpActionResult GetFile(long id)
         {
-            return TryHandleDocRequest(id, (app, doc) =>
+            return GetDocFile(id);
+        }
+
+        [HttpGet]
+        [ActionName("SecureFile")]
+        public IHttpActionResult SecureGetFile(string id, [FromUri] long osuId)
+        {
+            var json = TryDecryptString(id, $"{HashSecret}:{osuId}");
+            if (string.IsNullOrWhiteSpace(json))
+                return ForbiddenResult("Access to this document is not allowed.");
+
+            var data = JsonConvert.DeserializeObject<SecureData>(json);
+
+            /*
+             * The OSU ID should match or the decryption would fail.
+             * Just in case, validate OSU ID.
+             */
+            if (data.OsuId != osuId)
+                return ForbiddenResult("The user does not have access to this document.");
+
+            var now = DateTime.UtcNow;
+            if (!((data.ActiveStart <= now) && (now <= data.ActiveEnd)))
+                return ForbiddenResult("Access to this document has expired.");
+
+            return GetDocFile(data.DocId);
+        }
+
+        IHttpActionResult GetDocFile(long docId)
+        {
+            return TryHandleDocRequest(docId, (app, doc) =>
             {
                 var pdf = app.Core.Retrieval.PDF.GetDocument(
                     doc.DefaultRenditionOfLatestRevision);
@@ -209,12 +280,53 @@ namespace OnBaseDocsApi.Controllers
         public IHttpActionResult ListDocs()
         {
             var parms = new ParamCollection(Request.RequestUri.ParseQueryString());
-            var filterIndexKey = parms.Get("filter[indexKey]", DefaultIndexKey);
-            var filterDocTypeGroup = parms.Get("filter[typeGroup]", DefaultTypeGroup);
-            var filterDocType = parms.Get("filter[type]", DefaultDocType);
-            var filterStartDocId = parms.Get("filter[startDocId]", DefaultStartDocId);
-            var filterPageSize = parms.Get("filter[pageSize]", DefaultPageSize);
 
+            var filter = new DocListFilter
+            {
+                IndexKey = parms.Get("filter[indexKey]", DefaultIndexKey),
+                DocTypeGroup = parms.Get("filter[typeGroup]", DefaultTypeGroup),
+                DocType = parms.Get("filter[type]", DefaultDocType),
+                StartDocId = parms.Get("filter[startDocId]", DefaultStartDocId),
+                PageSize = parms.Get("filter[pageSize]", DefaultPageSize),
+                KeywordsHasAll = parms.Get("filter[keywords][hasAll]", DefaultKeywords),
+            };
+
+            return ListDocs<DocumentAttributes>(filter, d => DocumentResource(d));
+        }
+
+        // We can't use [FromUri] to auto bind the query parameters because
+        // the binding does not work with '[' and ']'. So we must manually
+        // bind them.
+        [HttpGet]
+        [ActionName("Secure")]
+        public IHttpActionResult SecureListDocs()
+        {
+            var parms = new ParamCollection(Request.RequestUri.ParseQueryString());
+
+            var osuId = parms.Get("osuId", 0);
+            if (osuId == 0)
+                return BadRequest("A valid OSUID is required.");
+
+            var timeToLive = parms.Get("timeToLive", DefaultTimeToLive);
+
+            long startDocId = 0;
+            var startDocHash = parms.Get("filter[startDocHash]", DefaultStartDocId);
+
+            var filter = new DocListFilter
+            {
+                IndexKey = parms.Get("filter[indexKey]", DefaultIndexKey),
+                DocTypeGroup = parms.Get("filter[docTypeGroup]", DefaultTypeGroup),
+                DocType = parms.Get("filter[docType]", DefaultDocType),
+                StartDocId = startDocId,
+                PageSize = parms.Get("filter[pageSize]", DefaultPageSize),
+                KeywordsHasAll = parms.Get("filter[keywords][hasAll]", DefaultKeywords),
+            };
+
+            return ListDocs<SecureDocumentAttributes>(filter, d => SecureDocumentResource(osuId, timeToLive, d));
+        }
+
+        IHttpActionResult ListDocs<T>(DocListFilter filter, Func<Document, DataResource<T>> resourceFactory)
+        {
             // We bundle the bad requests in one response.
             var badRequestErrors = new List<Error>();
 
@@ -222,10 +334,9 @@ namespace OnBaseDocsApi.Controllers
             // Read the keywords.
             //
             var filterKeywords = new Dictionary<string, string>();
-            var keywordsParam = parms.Get("filter[keywords][hasAll]", DefaultKeywords);
-            if (!string.IsNullOrWhiteSpace(keywordsParam))
+            if (!string.IsNullOrWhiteSpace(filter.KeywordsHasAll))
             {
-                foreach (var kw in keywordsParam.Split('|'))
+                foreach (var kw in filter.KeywordsHasAll.Split('|'))
                 {
                     var parts = kw.Split(':');
                     if (parts.Length == 2)
@@ -239,7 +350,7 @@ namespace OnBaseDocsApi.Controllers
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(filterIndexKey) && string.IsNullOrWhiteSpace(filterDocType))
+            if (string.IsNullOrWhiteSpace(filter.IndexKey) && string.IsNullOrWhiteSpace(filter.DocType))
                 badRequestErrors.Add(BadRequestError("One of filter[indexKey] or filter[type] parameters is required."));
 
             var config = Global.Config;
@@ -247,19 +358,19 @@ namespace OnBaseDocsApi.Controllers
             return TryHandleRequest(app =>
             {
                 DocumentTypeGroup docTypeGroup = null;
-                if (!string.IsNullOrWhiteSpace(filterDocTypeGroup))
+                if (!string.IsNullOrWhiteSpace(filter.DocTypeGroup))
                 {
-                    docTypeGroup = app.Core.DocumentTypeGroups.Find(filterDocTypeGroup);
+                    docTypeGroup = app.Core.DocumentTypeGroups.Find(filter.DocTypeGroup);
                     if (docTypeGroup == null)
-                        badRequestErrors.Add(BadRequestError($"The document type group '{filterDocTypeGroup}' could not be found."));
+                        badRequestErrors.Add(BadRequestError($"The document type group '{filter.DocTypeGroup}' could not be found."));
                 }
 
                 DocumentType docType = null;
-                if (!string.IsNullOrWhiteSpace(filterDocType))
+                if (!string.IsNullOrWhiteSpace(filter.DocType))
                 {
-                    docType = app.Core.DocumentTypes.Find(filterDocType);
+                    docType = app.Core.DocumentTypes.Find(filter.DocType);
                     if (docType == null)
-                        badRequestErrors.Add(BadRequestError($"The document type '{filterDocType}' could not be found."));
+                        badRequestErrors.Add(BadRequestError($"The document type '{filter.DocType}' could not be found."));
                 }
 
                 var query = app.Core.CreateDocumentQuery();
@@ -274,8 +385,8 @@ namespace OnBaseDocsApi.Controllers
                     query.AddDocumentTypeGroup(docTypeGroup);
                 if (docType != null)
                     query.AddDocumentType(docType);
-                if (!string.IsNullOrWhiteSpace(filterIndexKey))
-                    query.AddKeyword(config.DocIndexKeyName, filterIndexKey);
+                if (!string.IsNullOrWhiteSpace(filter.IndexKey))
+                    query.AddKeyword(config.DocIndexKeyName, filter.IndexKey);
 
                 // Add the keywords to the query.
                 foreach (var keyword in filterKeywords)
@@ -284,28 +395,28 @@ namespace OnBaseDocsApi.Controllers
                 // The OnBase API does not support a method for paging. The closest
                 // we can get is to use a starting document ID.
                 query.AddSort(DocumentQuery.SortAttribute.DocumentID, true);
-                query.AddDocumentRange(filterStartDocId, long.MaxValue);
-                var queryResults = query.Execute(filterPageSize);
+                query.AddDocumentRange(filter.StartDocId, long.MaxValue);
+                var queryResults = query.Execute(filter.PageSize);
                 if (queryResults == null)
                     return InternalErrorResult("Document query returned null.");
 
-                var docs = new List<DataResource<DocumentAttributes>>();
+                var docs = new List<DataResource<T>>();
                 foreach (var doc in queryResults)
                 {
-                    docs.Add(DocumentResource(doc));
+                    docs.Add(resourceFactory(doc));
                 }
 
                 // Generate the query string for this request.
                 var builder = new QueryStringBuilder();
-                builder.Add("filter[indexKey]", filterIndexKey, DefaultIndexKey);
-                builder.Add("filter[typeGroup]", filterDocTypeGroup, DefaultTypeGroup);
-                builder.Add("filter[type]", filterDocType, DefaultDocType);
-                builder.Add("filter[startDocId]", filterStartDocId, DefaultStartDocId);
-                builder.Add("filter[pageSize]", filterPageSize, DefaultPageSize);
-                builder.Add("filter[keywords][hasAll]", keywordsParam, DefaultKeywords);
+                builder.Add("filter[indexKey]", filter.IndexKey, DefaultIndexKey);
+                builder.Add("filter[docTypeGroup]", filter.DocTypeGroup, DefaultTypeGroup);
+                builder.Add("filter[docType]", filter.DocType, DefaultDocType);
+                builder.Add("filter[startDocId]", filter.StartDocId, DefaultStartDocId);
+                builder.Add("filter[pageSize]", filter.PageSize, DefaultPageSize);
+                builder.Add("filter[keywords][hasAll]", filter.KeywordsHasAll, DefaultKeywords);
                 var queryStr = builder.ToString();
 
-                return Ok(new ListResult<DocumentAttributes>
+                return Ok(new ListResult<T>
                 {
                     Data = docs,
                     Links = new DataLinks
@@ -414,13 +525,13 @@ namespace OnBaseDocsApi.Controllers
             }
         }
 
-        IHttpActionResult DocumentResult(Document doc, string createdDocType = null)
+        IHttpActionResult DocumentResult(Document doc, string docId = null, string createdDocType = null)
         {
             var config = Global.Config;
 
             var endpointUri = $"{config.ApiHost}/{config.ApiBasePath}";
             var selfUri = $"{endpointUri}/{doc.ID}";
-            var docResource = DocumentResource(doc);
+            var docResource = DocumentResource(doc, docId);
 
             if (!string.IsNullOrWhiteSpace(createdDocType))
                 docResource.Attributes.ReindexDocumentType = createdDocType;
@@ -440,7 +551,7 @@ namespace OnBaseDocsApi.Controllers
                 return Created(selfUri, result);
         }
 
-        DataResource<DocumentAttributes> DocumentResource(Document doc)
+        DataResource<DocumentAttributes> DocumentResource(Document doc, string docId = null)
         {
             var keywords = doc.KeywordRecords
                 .SelectMany(x => x.Keywords.Select(k =>
@@ -451,9 +562,12 @@ namespace OnBaseDocsApi.Controllers
                     }))
                 .ToArray();
 
+            if (string.IsNullOrEmpty(docId))
+                docId = doc.ID.ToString();
+
             return new DataResource<DocumentAttributes>
             {
-                ID = doc.ID.ToString(),
+                ID = docId,
                 Type = "onbaseDocument",
                 Attributes = new DocumentAttributes
                 {
@@ -468,6 +582,149 @@ namespace OnBaseDocsApi.Controllers
                     Keywords = keywords,
                 }
             };
+        }
+
+        DataResource<SecureDocumentAttributes> SecureDocumentResource(long osuId, int timeToLive, Document doc)
+        {
+            var now = DateTime.UtcNow;
+
+            var data = new SecureData
+            {
+                DocId = doc.ID,
+                OsuId = osuId,
+                ActiveStart = now,
+                ActiveEnd = now.AddHours(timeToLive),
+            };
+
+            string json = JsonConvert.SerializeObject(data);
+
+            return new DataResource<SecureDocumentAttributes>
+            {
+                ID = EncryptString(json, $"{HashSecret}:{osuId}"),
+                Type = "onbaseSecureDocument",
+                Attributes = new SecureDocumentAttributes
+                {
+                    Name = doc.Name,
+                }
+            };
+        }
+
+        /// <summary>
+        /// Encrypt the given string using AES.  The string can be decrypted using DecryptString.
+        /// </summary>
+        /// <param name="str">The text to encrypt.</param>
+        /// <param name="secret">A secret used to generate a key for encryption.</param>
+        static string EncryptString(string str, string secret)
+        {
+            if (string.IsNullOrWhiteSpace(str))
+                throw new ArgumentNullException("str");
+            if (string.IsNullOrWhiteSpace(secret))
+                throw new ArgumentNullException("secret");
+
+            string result = null;
+
+            // Generate the key from the shared secret and the salt.
+            var key = new Rfc2898DeriveBytes(secret, HashSalt);
+
+            // Create a RijndaelManaged object.
+            var aesAlg = new RijndaelManaged();
+            aesAlg.Key = key.GetBytes(aesAlg.KeySize / 8);
+
+            // Create a encryptor to perform the transform.
+            var encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+            // Encrypt the data.
+            using (var stream = new MemoryStream())
+            {
+                // Prepend the IV. The IV is needed for decryption.
+                stream.Write(BitConverter.GetBytes(aesAlg.IV.Length), 0, sizeof(int));
+                stream.Write(aesAlg.IV, 0, aesAlg.IV.Length);
+
+                using (var cryptStream = new CryptoStream(stream, encryptor, CryptoStreamMode.Write))
+                {
+                    using (var writer = new StreamWriter(cryptStream))
+                    {
+                        writer.Write(str);
+                    }
+                }
+
+                //result = Convert.ToBase64String(stream.ToArray());
+                result = System.Web.HttpServerUtility.UrlTokenEncode(stream.ToArray());
+            }
+
+            // Return the encrypted bytes from the memory stream.
+            return result;
+        }
+
+        /// <summary>
+        /// Decrypt the given string.  Assumes the string was encrypted using EncryptString.
+        /// </summary>
+        /// <param name="cipher">The text to decrypt.</param>
+        /// <param name="secret">A secret used to generate a key for decryption.</param>
+        static string DecryptString(string cipher, string secret)
+        {
+            if (string.IsNullOrWhiteSpace(cipher))
+                throw new ArgumentNullException("cipher");
+            if (string.IsNullOrWhiteSpace(secret))
+                throw new ArgumentNullException("secret");
+
+            string result = null;
+
+            // Generate the key from the shared secret and the salt.
+            var key = new Rfc2898DeriveBytes(secret, HashSalt);
+
+            // Create the streams used for decryption.
+            byte[] bytes = System.Web.HttpServerUtility.UrlTokenDecode(cipher);
+
+            using (var stream = new MemoryStream(bytes))
+            {
+                // Create a RijndaelManaged object.
+                var aesAlg = new RijndaelManaged();
+                aesAlg.Key = key.GetBytes(aesAlg.KeySize / 8);
+                aesAlg.IV = ReadHashData(stream);
+
+                // Create a decrytor to perform the transform.
+                var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+                using (var decryptStream = new CryptoStream(stream, decryptor, CryptoStreamMode.Read))
+                {
+                    using (var reader = new StreamReader(decryptStream))
+                    {
+                        result = reader.ReadToEnd();
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        static string TryDecryptString(string cipher, string secret)
+        {
+            try
+            {
+                return DecryptString(cipher, secret);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        static byte[] ReadHashData(Stream s)
+        {
+            byte[] rawLength = new byte[sizeof(int)];
+            if (s.Read(rawLength, 0, rawLength.Length) != rawLength.Length)
+                throw new SystemException("The hash is not valid.");
+
+            var len = BitConverter.ToInt32(rawLength, 0);
+            if ((len <= 0) || (len > MaxHashLen))
+                throw new SystemException($"Invalid hash size ({len}).");
+
+            byte[] buffer = new byte[len];
+            if (s.Read(buffer, 0, buffer.Length) != buffer.Length)
+                throw new SystemException("The hash is not valid.");
+
+            return buffer;
         }
     }
 }
