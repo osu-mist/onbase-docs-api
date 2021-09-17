@@ -50,7 +50,7 @@ namespace OnBaseDocsApi.Controllers
         {
             return TryHandleDocRequest(id, (_, doc) =>
             {
-                return DocumentResult(doc);
+                return DocumentResult(doc, id.ToString());
             });
         }
 
@@ -268,7 +268,7 @@ namespace OnBaseDocsApi.Controllers
                     MoveDocumentToWorkflow(docId, docType);
                 });
 
-                return DocumentResult(doc, docAttr.DocumentType);
+                return DocumentResult(doc, docId.ToString(), docAttr.DocumentType);
             });
         }
 
@@ -525,7 +525,7 @@ namespace OnBaseDocsApi.Controllers
             }
         }
 
-        IHttpActionResult DocumentResult(Document doc, string docId = null, string createdDocType = null)
+        IHttpActionResult DocumentResult(Document doc, string docId, string createdDocType = null)
         {
             var config = Global.Config;
 
