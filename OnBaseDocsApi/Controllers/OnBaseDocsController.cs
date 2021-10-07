@@ -197,8 +197,8 @@ namespace OnBaseDocsApi.Controllers
                         docExtension = Path.GetExtension(fileName).TrimStart('.');
 
                         // Handle base64 file encoding.
-                        if (Request.Content.Headers.ContentEncoding.Any(x => x == "base64")
-                            || Request.Content.Headers.Any(x => x.Key == "Content-Transfer-Encoding" && x.Value.Any(v => v == "base64")))
+                        if (content.Headers.ContentEncoding.Any(x => x == "base64")
+                            || content.Headers.Any(x => x.Key == "Content-Transfer-Encoding" && x.Value.Any(v => v == "base64")))
                         {
                             /*
                              * We need to read the file content, bease64 decode it and set
