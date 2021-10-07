@@ -195,6 +195,21 @@ namespace OnBaseDocsApi.Controllers
                         var fileName = content.Headers.ContentDisposition.FileName.Trim('"');
                         docStream = content.ReadAsStreamAsync().Result;
                         docExtension = Path.GetExtension(fileName).TrimStart('.');
+
+                        // Handle base64 file encoding.
+                        if (Request.Content.Headers.ContentEncoding.Any(x => x == "base64")
+                            || Request.Content.Headers.Any(x => x.Key == "Content-Transfer-Encoding" && x.Value.Any(v => v == "base64")))
+                        {
+                            /*
+                             * We need to read the file content, bease64 decode it and set
+                             * docStream to be the decoded content.
+                             */
+                            using (var reader = new StreamReader(docStream))
+                            {
+                                var str = reader.ReadToEnd();
+                                docStream = new MemoryStream(Convert.FromBase64String(str));
+                            }
+                        }
                     }
                     else if (dispoName == "attributes")
                     {
