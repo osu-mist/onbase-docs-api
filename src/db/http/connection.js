@@ -12,7 +12,12 @@ const { baseUri, apiServer } = config.get('dataSources.http');
  */
 const validateHttp = async () => {
   try {
-    await axios.get(`${baseUri}/app/${apiServer}/onbase/workflow/healthcheck`);
+    const res = await axios.get(
+      `${baseUri}/app/${apiServer}/onbase/workflow/healthcheck`,
+    );
+    if (res.status !== 200) {
+      throw new Error('Health check failed');
+    }
   } catch (err) {
     logger.error(err);
     throw new Error('Unable to connect to HTTP data source');
