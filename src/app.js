@@ -14,11 +14,8 @@ import { errorBuilder, errorHandler } from 'errors/errors';
 import { authentication } from 'middlewares/authentication';
 import { bodyParserError } from 'middlewares/body-parser-error';
 import { loggerMiddleware } from 'middlewares/logger';
-import { removeUnknownParams } from 'middlewares/remove-unknown-params';
 import { runtimeErrors } from 'middlewares/runtime-errors';
 import { validateBooleanParams } from 'middlewares/validate-boolean-params';
-import { validateNestedObjects } from 'middlewares/validate-nested-objects';
-import { validateOperationParams } from 'middlewares/validate-operation-params';
 import { openapi } from 'utils/load-openapi';
 import { validateDataSource } from 'utils/validate-data-source';
 
@@ -107,11 +104,6 @@ initialize({
   app: appRouter,
   apiDoc: {
     ...openapi,
-    'x-express-openapi-additional-middleware': [
-      validateOperationParams,
-      removeUnknownParams,
-      validateNestedObjects,
-    ],
   },
   paths: 'dist/api-routes',
   consumesMiddleware: {

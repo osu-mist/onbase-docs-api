@@ -1,14 +1,9 @@
 import config from 'config';
-import rp from 'request-promise-native';
+import axios from 'axios';
 
 import { logger } from 'utils/logger';
 
-const { baseUri, headers } = config.get('dataSources.http');
-
-const httpOptions = {
-  headers,
-  json: true,
-};
+const { baseUri, apiServer } = config.get('dataSources.http');
 
 /**
  * Validate http connection and throw an error if invalid
@@ -17,11 +12,11 @@ const httpOptions = {
  */
 const validateHttp = async () => {
   try {
-    await rp.head({ ...{ uri: baseUri }, ...httpOptions });
+    await axios.get(`${baseUri}/app/${apiServer}/onbase/workflow/healthcheck`);
   } catch (err) {
     logger.error(err);
     throw new Error('Unable to connect to HTTP data source');
   }
 };
 
-export { httpOptions, validateHttp };
+export { validateHttp };

@@ -19,7 +19,7 @@ security:
   - OAuth2:
       - full
 paths:
-  /documents:
+  /onbase-docs/documents:
     post:
       summary: Upload document
       tags:
@@ -58,7 +58,7 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
-  /documents/{documentId}/keywords:
+  /onbase-docs/documents/{documentId}/keywords:
     patch:
       summary: Sets all keyword values for an indexed document
       tags:
