@@ -1,9 +1,57 @@
-import config from 'config';
 import axios from 'axios';
+import config from 'config';
+import FormData from 'form-data';
 
 import { logger } from 'utils/logger';
 
-const { baseUri, apiServer } = config.get('dataSources.http');
+const {
+  baseUri,
+  apiServer,
+  idpServer,
+  tenant,
+  clientId,
+  clientSecret,
+  onbaseProfiles,
+} = config.get('dataSources.http');
+
+const onbaseWorkflowUrl = `${baseUri}/app/${apiServer}/onbase/workflow`;
+const onbaseIdpUrl = `${baseUri}/app/${idpServer}`;
+
+/**
+ * Get API access token from OnBase IDP server
+ * @param {string} onbaseProfile OnBase profile name
+ *
+ * @returns {Promise} resolves if fetched access token and rejects otherwise
+ */
+const getAccessToken = async (onbaseProfile) => {
+  try {
+    const { username, password } = onbaseProfiles[onbaseProfile];
+
+    const formData = new FormData();
+    formData.append('grant_type', 'password');
+    formData.append('scope', 'evolution');
+    formData.append('tenant', tenant);
+    formData.append('client_id', clientId);
+    formData.append('client_secret', clientSecret);
+    formData.append('username', username);
+    formData.append('password', password);
+
+    const res = await axios.post(
+      `${onbaseIdpUrl}/connect/token`,
+      formData,
+      { headers: formData.getHeaders() },
+    );
+
+    if (res.status !== 200) {
+      throw new Error('Failed to log in');
+    }
+
+    return res.data.access_token;
+  } catch (err) {
+    logger.error(err);
+    throw new Error(err);
+  }
+};
 
 /**
  * Validate http connection and throw an error if invalid
@@ -12,9 +60,7 @@ const { baseUri, apiServer } = config.get('dataSources.http');
  */
 const validateHttp = async () => {
   try {
-    const res = await axios.get(
-      `${baseUri}/app/${apiServer}/onbase/workflow/healthcheck`,
-    );
+    const res = await axios.get(`${onbaseWorkflowUrl}/healthcheck`);
     if (res.status !== 200) {
       throw new Error('Health check failed');
     }
@@ -24,4 +70,4 @@ const validateHttp = async () => {
   }
 };
 
-export { validateHttp };
+export { getAccessToken, validateHttp };

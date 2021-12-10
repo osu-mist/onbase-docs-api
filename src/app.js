@@ -16,6 +16,7 @@ import { bodyParserError } from 'middlewares/body-parser-error';
 import { loggerMiddleware } from 'middlewares/logger';
 import { runtimeErrors } from 'middlewares/runtime-errors';
 import { validateBooleanParams } from 'middlewares/validate-boolean-params';
+import { validateOnbaseProfile } from 'middlewares/validate-onbase-profile';
 import { openapi } from 'utils/load-openapi';
 import { validateDataSource } from 'utils/validate-data-source';
 
@@ -53,6 +54,7 @@ adminApp.use(baseEndpoint, adminAppRouter);
 appRouter.use(loggerMiddleware);
 appRouter.use(authentication);
 appRouter.use(validateBooleanParams);
+appRouter.use(validateOnbaseProfile);
 adminAppRouter.use(authentication);
 
 /**

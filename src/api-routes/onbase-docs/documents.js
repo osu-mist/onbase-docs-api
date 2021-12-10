@@ -1,5 +1,5 @@
 import { errorHandler } from 'errors/errors';
-// import { getPets, postPet } from '../db/json/pets-dao-example';
+import { getAccessToken } from '../../db/http/connection';
 // import { serializePet, serializePets } from '../serializers/pets-serializer';
 
 /**
@@ -9,6 +9,9 @@ import { errorHandler } from 'errors/errors';
  */
 const post = async (req, res) => {
   try {
+    const onbaseProfile = req.headers['onbase-profile'];
+    const token = await getAccessToken(onbaseProfile, res);
+    console.log(token);
     // const rawPet = await postPet(req.body);
     // const result = serializePet(rawPet, req);
     // res.set('Location', result.data.links.self);

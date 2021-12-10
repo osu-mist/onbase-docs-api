@@ -40,13 +40,14 @@ const badRequest = (details) => {
 /**
  * [401] Return a Unauthorized error object
  *
+ * @param {string} detail A human-readable explanation
  * @returns {object} Unauthorized error object
  */
-const unauthorized = () => new JsonApiError(error(
+const unauthorized = (detail) => new JsonApiError(error(
   '401',
   'Unauthorized',
   '1401',
-  'Credentials are invalid',
+  detail || 'Credentials are invalid',
 ));
 
 /**
@@ -111,7 +112,7 @@ const internalServerError = (detail) => new JsonApiError(error(
 const errorBuilder = (res, status, detail) => {
   const errorDictionary = {
     400: badRequest(detail),
-    410: unauthorized(),
+    401: unauthorized(detail),
     403: forbidden(detail),
     404: notFound(detail),
     409: conflict(detail),

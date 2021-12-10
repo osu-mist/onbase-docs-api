@@ -12,7 +12,7 @@ info:
     email: isdataarchitecture@oregonstate.edu
 externalDocs:
   description: GitHub Repository
-  url: https://github.com/osu-mist/express-api-skeleton
+  url: https://github.com/osu-mist/onbase-docs-api
 servers:
   - url: https://api.oregonstate.edu/v2
 security:
