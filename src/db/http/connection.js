@@ -36,11 +36,9 @@ const getAccessToken = async (onbaseProfile) => {
     formData.append('username', username);
     formData.append('password', password);
 
-    const res = await axios.post(
-      `${onbaseIdpUrl}/connect/token`,
-      formData,
-      { headers: formData.getHeaders() },
-    );
+    const res = await axios.post(`${onbaseIdpUrl}/connect/token`, formData, {
+      headers: formData.getHeaders(),
+    });
 
     return res.data.access_token;
   } catch (err) {
