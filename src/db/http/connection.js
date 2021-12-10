@@ -42,14 +42,14 @@ const getAccessToken = async (onbaseProfile) => {
       { headers: formData.getHeaders() },
     );
 
-    if (res.status !== 200) {
-      throw new Error('Failed to log in');
-    }
-
     return res.data.access_token;
   } catch (err) {
     logger.error(err);
-    throw new Error(err);
+    if (err.response && err.response.status === 400) {
+      throw new Error('OnBase server login failed');
+    } else {
+      throw new Error(err);
+    }
   }
 };
 
