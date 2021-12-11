@@ -104,9 +104,6 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
 
     return res;
   } catch (err) {
-    // console.log('--------------------------------');
-    // console.log(err);
-    // console.log('--------------------------------');
     logger.error(err);
     if (err.response && err.response.status !== 204) {
       logger.error(err.response.data.errors);
