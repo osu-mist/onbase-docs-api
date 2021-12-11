@@ -55,14 +55,14 @@ const getAccessToken = async (onbaseProfile) => {
 /**
  * Prepares the staging area to start the upload. Returns a reference to the file being uploaded.
  * @param {string} token access token
- * @param fileExtension
- * @param fileSize
- * @returns {Promise} resolves if fetched access token and rejects otherwise
+ * @param {string} mimeType media type
+ * @param {number} fileSize file size
+ * @returns {Promise} resolves if staging area initialized and rejects otherwise
  */
-const initiateStagingArea = async (token, fileExtension, fileSize) => {
+const initiateStagingArea = async (token, mimeType, fileSize) => {
   try {
     const reqConfig = { headers: { Authorization: `Bearer ${token}` } };
-    const body = { fileExtension, fileSize };
+    const body = { fileExtension: /[^/]*$/.exec(mimeType)[0], fileSize };
 
     const res = await axios.post(`${onbaseDocumentsUrl}/uploads`, body, reqConfig);
 
@@ -78,4 +78,43 @@ const initiateStagingArea = async (token, fileExtension, fileSize) => {
   }
 };
 
-export { getAccessToken, initiateStagingArea };
+/**
+ * Prepares the staging area to start the upload. Returns a reference to the file being uploaded.
+ * @param {string} token access token
+ * @param {string} uploadId the unique reference to the file being uploaded
+ * @param {number} filePart part number of the file to upload
+ * @param {string} mimeType media type
+ * @param {object} fileBuffer binary content for file upload
+ * @returns {Promise} resolves if file uploaded and rejects otherwise
+ */
+const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
+  try {
+    const reqConfig = {
+      method: 'put',
+      url: `${onbaseDocumentsUrl}/uploads/${uploadId}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': mimeType,
+      },
+      params: { filePart },
+      data: fileBuffer,
+    };
+
+    const res = await axios(reqConfig);
+
+    return res;
+  } catch (err) {
+    // console.log('--------------------------------');
+    // console.log(err);
+    // console.log('--------------------------------');
+    logger.error(err);
+    if (err.response && err.response.status !== 204) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      throw new Error(err);
+    }
+  }
+};
+
+export { getAccessToken, initiateStagingArea, uploadFile };
