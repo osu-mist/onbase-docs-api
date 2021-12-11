@@ -7,6 +7,7 @@ import config from 'config';
 import express from 'express';
 import { initialize } from 'express-openapi';
 import moment from 'moment';
+import multer from 'multer';
 import git from 'simple-git/promise';
 import 'source-map-support/register';
 
@@ -110,6 +111,15 @@ initialize({
   paths: 'dist/api-routes',
   consumesMiddleware: {
     'application/json': compose([bodyParser.json(), bodyParserError]),
+    'multipart/form-data': (req, res, next) => {
+      multer().any()(req, res, (err) => {
+        if (err) return next(err);
+        req.files.forEach((f) => {
+          req.body[f.fieldname] = ''; // Set to empty string to satisfy OpenAPI spec validation
+        });
+        return next();
+      });
+    },
   },
   errorMiddleware: runtimeErrors,
   errorTransformer,

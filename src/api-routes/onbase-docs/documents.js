@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 import { errorHandler } from 'errors/errors';
 import { getAccessToken, initiateStagingArea } from '../../db/http/onbase-dao';
 // import { serializePet, serializePets } from '../serializers/pets-serializer';
@@ -9,10 +11,15 @@ import { getAccessToken, initiateStagingArea } from '../../db/http/onbase-dao';
  */
 const post = async (req, res) => {
   try {
-    const onbaseProfile = req.headers['onbase-profile'];
-    const token = await getAccessToken(onbaseProfile, res);
+    const { files, headers } = req;
+    const onbaseProfile = headers['onbase-profile'];
 
-    const uploadId = await initiateStagingArea(token, 'pdf', 9848);
+    const uploadedDocument = _.find(files, { fieldname: 'uploadedDocument' });
+    const fileExtension = /[^/]*$/.exec(uploadedDocument.mimetype)[0];
+    const fileSize = uploadedDocument.size;
+
+    const token = await getAccessToken(onbaseProfile, res);
+    const uploadId = await initiateStagingArea(token, fileExtension, fileSize);
 
     console.log(uploadId);
     // const rawPet = await postPet(req.body);
