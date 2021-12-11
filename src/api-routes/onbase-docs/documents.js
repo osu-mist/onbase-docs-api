@@ -1,5 +1,5 @@
 import { errorHandler } from 'errors/errors';
-import { getAccessToken } from '../../db/http/connection';
+import { getAccessToken, initiateStagingArea } from '../../db/http/onbase-dao';
 // import { serializePet, serializePets } from '../serializers/pets-serializer';
 
 /**
@@ -11,7 +11,10 @@ const post = async (req, res) => {
   try {
     const onbaseProfile = req.headers['onbase-profile'];
     const token = await getAccessToken(onbaseProfile, res);
-    console.log(token);
+
+    const uploadId = await initiateStagingArea(token, 'pdf', 9848);
+
+    console.log(uploadId);
     // const rawPet = await postPet(req.body);
     // const result = serializePet(rawPet, req);
     // res.set('Location', result.data.links.self);
