@@ -16,6 +16,7 @@ const {
 
 const onbaseIdpUrl = `${baseUri}/app/${idpServer}`;
 const onbaseDocumentsUrl = `${baseUri}/app/${apiServer}/onbase/core/documents`;
+const onbaseDocumentTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/document-types`;
 
 /**
  * Get API access token from OnBase IDP server
@@ -36,14 +37,18 @@ const getAccessToken = async (onbaseProfile) => {
     formData.append('username', username);
     formData.append('password', password);
 
-    const res = await axios.post(`${onbaseIdpUrl}/connect/token`, formData, {
+    const reqConfig = {
+      method: 'post',
+      url: `${onbaseIdpUrl}/connect/token`,
       headers: formData.getHeaders(),
-    });
+      data: formData,
+    };
 
-    return res.data.access_token;
+    const { data: { access_token: accessToken } } = await axios(reqConfig);
+    return accessToken;
   } catch (err) {
     logger.error(err);
-    if (err.response && err.response.status === 400) {
+    if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.error);
       throw new Error(err.response.data.error_description);
     } else {
@@ -53,7 +58,8 @@ const getAccessToken = async (onbaseProfile) => {
 };
 
 /**
- * Prepares the staging area to start the upload. Returns a reference to the file being uploaded.
+ * Prepares the staging area to start the upload. Returns a reference to the file being uploaded
+ *
  * @param {string} token access token
  * @param {string} mimeType media type
  * @param {number} fileSize file size
@@ -61,12 +67,17 @@ const getAccessToken = async (onbaseProfile) => {
  */
 const initiateStagingArea = async (token, mimeType, fileSize) => {
   try {
-    const reqConfig = { headers: { Authorization: `Bearer ${token}` } };
-    const body = { fileExtension: /[^/]*$/.exec(mimeType)[0], fileSize };
+    const reqConfig = {
+      method: 'post',
+      url: `${onbaseDocumentsUrl}/uploads`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: { fileExtension: /[^/]*$/.exec(mimeType)[0], fileSize },
+    };
 
-    const res = await axios.post(`${onbaseDocumentsUrl}/uploads`, body, reqConfig);
-
-    return res.data;
+    const { data } = await axios(reqConfig);
+    return data;
   } catch (err) {
     logger.error(err);
     if (err.response && err.response.status !== 201) {
@@ -79,7 +90,8 @@ const initiateStagingArea = async (token, mimeType, fileSize) => {
 };
 
 /**
- * Prepares the staging area to start the upload. Returns a reference to the file being uploaded.
+ * Prepares the staging area to start the upload. Returns a reference to the file being uploaded
+ *
  * @param {string} token access token
  * @param {string} uploadId the unique reference to the file being uploaded
  * @param {number} filePart part number of the file to upload
@@ -100,13 +112,11 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
       data: fileBuffer,
     };
 
-    const res = await axios(reqConfig);
-
-    return res;
+    await axios(reqConfig);
   } catch (err) {
     logger.error(err);
     if (err.response && err.response.status !== 204) {
-      logger.error(err.response.data.errors);
+      // logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
       throw new Error(err);
@@ -114,4 +124,38 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
   }
 };
 
-export { getAccessToken, initiateStagingArea, uploadFile };
+/**
+ * Get keywords GUID string to ensure integrity of restricted keyword values
+ *
+ * @param {string} token access token
+ * @param {string} documentTypeId The unique identifier of a document type
+ * @returns {Promise} resolves if keywords Guid fetched and rejects otherwise
+ */
+const getKeywordsGuid = async (token, documentTypeId) => {
+  try {
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentTypesUrl}/${documentTypeId}/default-keywords`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data: { keywordGuid } } = await axios(reqConfig);
+    return keywordGuid;
+  } catch (err) {
+    logger.error(err);
+    if (err.response && err.response.status === 404) {
+      logger.error(err.response.data.errors);
+      return new Error(err.response.data.detail);
+    } if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    }
+    throw new Error(err);
+  }
+};
+
+export {
+  getAccessToken, initiateStagingArea, uploadFile, getKeywordsGuid,
+};

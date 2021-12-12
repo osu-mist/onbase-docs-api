@@ -1,7 +1,12 @@
 import _ from 'lodash';
 
-import { errorHandler } from 'errors/errors';
-import { getAccessToken, initiateStagingArea, uploadFile } from '../../db/http/onbase-dao';
+import { errorBuilder, errorHandler } from 'errors/errors';
+import {
+  getAccessToken,
+  initiateStagingArea,
+  uploadFile,
+  getKeywordsGuid,
+} from '../../db/http/onbase-dao';
 // import { serializePet, serializePets } from '../serializers/pets-serializer';
 
 /**
@@ -11,7 +16,7 @@ import { getAccessToken, initiateStagingArea, uploadFile } from '../../db/http/o
  */
 const post = async (req, res) => {
   try {
-    const { files, headers } = req;
+    const { files, headers, body: { documentTypeId } } = req;
     const onbaseProfile = headers['onbase-profile'];
 
     // Upload document information from form data
@@ -21,6 +26,12 @@ const post = async (req, res) => {
     // Get access token
     const token = await getAccessToken(onbaseProfile, res);
 
+    // Get keywords GUID
+    const keywordsGuid = await getKeywordsGuid(token, documentTypeId);
+    if (keywordsGuid instanceof Error) {
+      return errorBuilder(res, 400, [keywordsGuid.message]);
+    }
+
     // Prepare staging area
     const { id: uploadId, numberOfParts } = await initiateStagingArea(token, mimetype, size);
 
@@ -28,12 +39,9 @@ const post = async (req, res) => {
     // TODO: numberOfParts logic handlers
     await uploadFile(token, uploadId, numberOfParts, mimetype, buffer);
 
-    // const rawPet = await postPet(req.body);
-    // const result = serializePet(rawPet, req);
-    // res.set('Location', result.data.links.self);
-    res.status(201).send('hello');
+    return res.status(201).send('hello');
   } catch (err) {
-    errorHandler(res, err);
+    return errorHandler(res, err);
   }
 };
 
