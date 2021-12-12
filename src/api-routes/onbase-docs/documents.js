@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { errorBuilder, errorHandler } from 'errors/errors';
 import {
   getAccessToken,
-  getKeywordsGuid,
+  getDefaultKeywordsGuid,
   initiateStagingArea,
   uploadFile,
   archiveDocument,
@@ -29,7 +29,7 @@ const post = async (req, res) => {
     const token = await getAccessToken(onbaseProfile);
 
     // Get keywords GUID
-    const keywordsGuid = await getKeywordsGuid(token, documentTypeId);
+    const keywordsGuid = await getDefaultKeywordsGuid(token, documentTypeId);
     if (keywordsGuid instanceof Error) {
       return errorBuilder(res, 400, [keywordsGuid.message]);
     }

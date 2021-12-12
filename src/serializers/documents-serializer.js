@@ -16,7 +16,7 @@ const documentResourceUrl = resourcePathLink(apiBaseUrl, documentResourcePath);
  *
  * @param {object} documentMetaData document meta data
  * @param {boolean} req Express request object
- * @returns {object} Serialized petResource object
+ * @returns {object} Serialized documentResource object
  */
 const serializeDocument = (documentMetaData, { method, query }) => {
   const baseUrl = method === 'POST'

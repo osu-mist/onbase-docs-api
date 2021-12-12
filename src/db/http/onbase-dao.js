@@ -1,6 +1,7 @@
 import axios from 'axios';
 import config from 'config';
 import FormData from 'form-data';
+import _ from 'lodash';
 
 import { logger } from 'utils/logger';
 
@@ -125,13 +126,13 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
 };
 
 /**
- * Get keywords GUID string to ensure integrity of restricted keyword values
+ * Get default keywords GUID string to ensure integrity of restricted keyword values
  *
  * @param {string} token access token
  * @param {string} documentTypeId the unique identifier of a document type
- * @returns {Promise} resolves if keywords Guid fetched or rejects otherwise
+ * @returns {Promise} resolves if keywords GUID fetched or rejects otherwise
  */
-const getKeywordsGuid = async (token, documentTypeId) => {
+const getDefaultKeywordsGuid = async (token, documentTypeId) => {
   try {
     const reqConfig = {
       method: 'get',
@@ -226,11 +227,88 @@ const getDocumentById = async (token, documentId) => {
   }
 };
 
+/**
+ * Get document keywords
+ *
+ * @param {string} token access token
+ * @param {string} documentId the unique identifier of a document type
+ * @returns {Promise} resolves if document keywords fetched or rejects otherwise
+ */
+const getDocumentKeywords = async (token, documentId) => {
+  try {
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentsUrl}/${documentId}/keywords`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios(reqConfig);
+    return data;
+  } catch (err) {
+    logger.error(err);
+    if (err.response && err.response.status === 404) {
+      logger.error(err.response.data.errors);
+      return new Error(err.response.data.detail);
+    } if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    }
+    throw new Error(err);
+  }
+};
+
+/**
+ * Get document metadata
+ * @param {string} token access token
+ * @param {string} documentId the unique identifier of a document.
+ * @param {object} currentKeywordCollection current keyword collection
+ * @param {object} newKeywords new keywords object
+ * @returns {Promise} resolves if document meta data fetched successfully or rejects otherwise
+ */
+const patchDocumentKeywords = async (token, documentId, currentKeywordCollection, newKeywords) => {
+  try {
+    const newKeywordsMap = {};
+    _.forEach(newKeywords, (newKeyword) => {
+      newKeywordsMap[newKeyword.keywordTypeId] = _.map(newKeyword.values, (value) => ({ value }));
+    });
+
+    _.forEach(currentKeywordCollection.items[0].keywords, (keyword) => {
+      if (_.has(newKeywordsMap, keyword.typeId)) {
+        keyword.values = newKeywordsMap[keyword.typeId];
+      }
+    });
+
+    const reqConfig = {
+      method: 'put',
+      url: `${onbaseDocumentsUrl}/${documentId}/keywords`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: currentKeywordCollection,
+    };
+
+    const data = await axios(reqConfig);
+    return data;
+  } catch (err) {
+    logger.error(err);
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      throw new Error(err);
+    }
+  }
+};
+
 export {
   getAccessToken,
   initiateStagingArea,
   uploadFile,
-  getKeywordsGuid,
+  getDefaultKeywordsGuid,
   archiveDocument,
   getDocumentById,
+  getDocumentKeywords,
+  patchDocumentKeywords,
 };

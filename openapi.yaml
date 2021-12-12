@@ -61,7 +61,7 @@ paths:
         - documents
         - keywords
       description: Sets all keyword values for an indexed document. Existing values will be replaced with the supplied list of keyword values grouped by keyword type group and keyword type.
-      operationId: patchDocumentKeywords
+      operationId: patchKeywords
       parameters:
         - name: documentId
           in: path
@@ -101,7 +101,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentKeywordsResult'
+                $ref: '#/components/schemas/KeywordsResult'
         '404':
           $ref: '#/components/responses/404'
         '500':
@@ -210,7 +210,7 @@ components:
                 - Active
                 - Deleted
                 - Inactive
-    DocumentKeywordsResource:
+    KeywordsResource:
       properties:
         id:
           type: string
@@ -244,12 +244,12 @@ components:
           $ref: '#/components/schemas/SelfLink'
         data:
           $ref: '#/components/schemas/DocumentResource'
-    DocumentKeywordsResult:
+    KeywordsResult:
       properties:
         links:
           $ref: '#/components/schemas/SelfLink'
         data:
-          $ref: '#/components/schemas/DocumentKeywordsResource'
+          $ref: '#/components/schemas/KeywordsResource'
     ErrorObject:
       properties:
         status:
