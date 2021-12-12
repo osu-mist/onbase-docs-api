@@ -24,7 +24,7 @@ const post = async (req, res) => {
     const { size, buffer, mimetype } = uploadedDocument;
 
     // Get access token
-    const token = await getAccessToken(onbaseProfile, res);
+    const token = await getAccessToken(onbaseProfile);
 
     // Get keywords GUID
     const keywordsGuid = await getKeywordsGuid(token, documentTypeId);
