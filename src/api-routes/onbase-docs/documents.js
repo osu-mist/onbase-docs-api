@@ -3,9 +3,10 @@ import _ from 'lodash';
 import { errorBuilder, errorHandler } from 'errors/errors';
 import {
   getAccessToken,
+  getKeywordsGuid,
   initiateStagingArea,
   uploadFile,
-  getKeywordsGuid,
+  archiveDocument,
 } from '../../db/http/onbase-dao';
 // import { serializePet, serializePets } from '../serializers/pets-serializer';
 
@@ -16,7 +17,7 @@ import {
  */
 const post = async (req, res) => {
   try {
-    const { files, headers, body: { documentTypeId } } = req;
+    const { files, headers, body: { documentTypeId, fileTypeId } } = req;
     const onbaseProfile = headers['onbase-profile'];
 
     // Upload document information from form data
@@ -39,7 +40,16 @@ const post = async (req, res) => {
     // TODO: numberOfParts logic handlers
     await uploadFile(token, uploadId, numberOfParts, mimetype, buffer);
 
-    return res.status(201).send('hello');
+    // Archive document
+    const documentId = await archiveDocument(
+      token,
+      documentTypeId,
+      fileTypeId,
+      uploadId,
+      keywordsGuid,
+    );
+
+    return res.status(201).send(documentId);
   } catch (err) {
     return errorHandler(res, err);
   }

@@ -22,7 +22,7 @@ const onbaseDocumentTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/document
  * Get API access token from OnBase IDP server
  *
  * @param {string} onbaseProfile OnBase profile name
- * @returns {Promise} resolves if fetched access token and rejects otherwise
+ * @returns {Promise} resolves if fetched access token or rejects otherwise
  */
 const getAccessToken = async (onbaseProfile) => {
   try {
@@ -63,7 +63,7 @@ const getAccessToken = async (onbaseProfile) => {
  * @param {string} token access token
  * @param {string} mimeType media type
  * @param {number} fileSize file size
- * @returns {Promise} resolves if staging area initialized and rejects otherwise
+ * @returns {Promise} resolves if staging area initialized or rejects otherwise
  */
 const initiateStagingArea = async (token, mimeType, fileSize) => {
   try {
@@ -97,7 +97,7 @@ const initiateStagingArea = async (token, mimeType, fileSize) => {
  * @param {number} filePart part number of the file to upload
  * @param {string} mimeType media type
  * @param {object} fileBuffer binary content for file upload
- * @returns {Promise} resolves if file uploaded and rejects otherwise
+ * @returns {Promise} resolves if file uploaded or rejects otherwise
  */
 const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
   try {
@@ -128,8 +128,8 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
  * Get keywords GUID string to ensure integrity of restricted keyword values
  *
  * @param {string} token access token
- * @param {string} documentTypeId The unique identifier of a document type
- * @returns {Promise} resolves if keywords Guid fetched and rejects otherwise
+ * @param {string} documentTypeId the unique identifier of a document type
+ * @returns {Promise} resolves if keywords Guid fetched or rejects otherwise
  */
 const getKeywordsGuid = async (token, documentTypeId) => {
   try {
@@ -156,6 +156,51 @@ const getKeywordsGuid = async (token, documentTypeId) => {
   }
 };
 
+/**
+ * Finishes the document upload by archiving the document into the given document type
+ * @param {string} token access token
+ * @param {string} documentTypeId the unique identifier of a document type
+ * @param {string} fileTypeId ID of the file Type for the document
+ * @param {string} uploadId file uploaded ID
+ * @param {string} keywordsGuid keywords GUID string
+ * @returns {Promise} resolves if document archived successfully or rejects otherwise
+ */
+const archiveDocument = async (token, documentTypeId, fileTypeId, uploadId, keywordsGuid) => {
+  try {
+    const reqConfig = {
+      method: 'post',
+      url: `${onbaseDocumentsUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: {
+        documentTypeId,
+        fileTypeId,
+        uploads: [{ id: uploadId }],
+        keywordCollection: {
+          keywordGuid: keywordsGuid,
+          items: [],
+        },
+      },
+    };
+
+    const { data: { id: documentId } } = await axios(reqConfig);
+    return documentId;
+  } catch (err) {
+    logger.error(err);
+    if (err.response && err.response.status !== 201) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      throw new Error(err);
+    }
+  }
+};
+
 export {
-  getAccessToken, initiateStagingArea, uploadFile, getKeywordsGuid,
+  getAccessToken,
+  initiateStagingArea,
+  uploadFile,
+  getKeywordsGuid,
+  archiveDocument,
 };
