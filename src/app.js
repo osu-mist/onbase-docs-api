@@ -6,6 +6,7 @@ import { compose } from 'compose-middleware';
 import config from 'config';
 import express from 'express';
 import { initialize } from 'express-openapi';
+import _ from 'lodash';
 import moment from 'moment';
 import multer from 'multer';
 import git from 'simple-git/promise';
@@ -114,6 +115,10 @@ initialize({
     'multipart/form-data': (req, res, next) => {
       multer().any()(req, res, (err) => {
         if (err) return next(err);
+        if (!req.files || !_.find(req.files, { fieldname: 'uploadedDocument' })) {
+          return errorBuilder(res, 400, ['Filed uploadedDocument is required.']);
+        }
+
         req.files.forEach((f) => {
           req.body[f.fieldname] = ''; // Set to empty string to satisfy OpenAPI spec validation
         });
