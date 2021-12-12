@@ -7,8 +7,9 @@ import {
   initiateStagingArea,
   uploadFile,
   archiveDocument,
+  getDocumentById,
 } from '../../db/http/onbase-dao';
-// import { serializePet, serializePets } from '../serializers/pets-serializer';
+import { serializeDocument } from '../../serializers/documents-serializer';
 
 /**
  * Post document
@@ -17,7 +18,7 @@ import {
  */
 const post = async (req, res) => {
   try {
-    const { files, headers, body: { documentTypeId, fileTypeId } } = req;
+    const { files, headers, body: { documentTypeId } } = req;
     const onbaseProfile = headers['onbase-profile'];
 
     // Upload document information from form data
@@ -34,7 +35,8 @@ const post = async (req, res) => {
     }
 
     // Prepare staging area
-    const { id: uploadId, numberOfParts } = await initiateStagingArea(token, mimetype, size);
+    const fileExtension = /[^/]*$/.exec(mimetype)[0];
+    const { id: uploadId, numberOfParts } = await initiateStagingArea(token, fileExtension, size);
 
     // Upload file
     // TODO: numberOfParts logic handlers
@@ -44,12 +46,20 @@ const post = async (req, res) => {
     const documentId = await archiveDocument(
       token,
       documentTypeId,
-      fileTypeId,
       uploadId,
       keywordsGuid,
     );
 
-    return res.status(201).send(documentId);
+    // Get document meta data
+    const documentMetaData = await getDocumentById(token, documentId);
+    documentMetaData.size = size;
+    documentMetaData.extension = fileExtension;
+    documentMetaData.documentTypeId = documentTypeId;
+
+    // Serialize document
+    const serializedDocument = serializeDocument(documentMetaData, req);
+
+    return res.status(201).send(serializedDocument);
   } catch (err) {
     return errorHandler(res, err);
   }

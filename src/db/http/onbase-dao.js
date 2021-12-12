@@ -61,11 +61,11 @@ const getAccessToken = async (onbaseProfile) => {
  * Prepares the staging area to start the upload. Returns a reference to the file being uploaded
  *
  * @param {string} token access token
- * @param {string} mimeType media type
+ * @param {string} fileExtension file extension
  * @param {number} fileSize file size
  * @returns {Promise} resolves if staging area initialized or rejects otherwise
  */
-const initiateStagingArea = async (token, mimeType, fileSize) => {
+const initiateStagingArea = async (token, fileExtension, fileSize) => {
   try {
     const reqConfig = {
       method: 'post',
@@ -73,7 +73,7 @@ const initiateStagingArea = async (token, mimeType, fileSize) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      data: { fileExtension: /[^/]*$/.exec(mimeType)[0], fileSize },
+      data: { fileExtension, fileSize },
     };
 
     const { data } = await axios(reqConfig);
@@ -158,14 +158,14 @@ const getKeywordsGuid = async (token, documentTypeId) => {
 
 /**
  * Finishes the document upload by archiving the document into the given document type
+ *
  * @param {string} token access token
  * @param {string} documentTypeId the unique identifier of a document type
- * @param {string} fileTypeId ID of the file Type for the document
  * @param {string} uploadId file uploaded ID
  * @param {string} keywordsGuid keywords GUID string
  * @returns {Promise} resolves if document archived successfully or rejects otherwise
  */
-const archiveDocument = async (token, documentTypeId, fileTypeId, uploadId, keywordsGuid) => {
+const archiveDocument = async (token, documentTypeId, uploadId, keywordsGuid) => {
   try {
     const reqConfig = {
       method: 'post',
@@ -175,7 +175,6 @@ const archiveDocument = async (token, documentTypeId, fileTypeId, uploadId, keyw
       },
       data: {
         documentTypeId,
-        fileTypeId,
         uploads: [{ id: uploadId }],
         keywordCollection: {
           keywordGuid: keywordsGuid,
@@ -197,10 +196,41 @@ const archiveDocument = async (token, documentTypeId, fileTypeId, uploadId, keyw
   }
 };
 
+/**
+ * Get document metadata
+ *
+ * @param {string} token access token
+ * @param {string} documentId the unique identifier of a document.
+ * @returns {Promise} resolves if document meta data fetched successfully or rejects otherwise
+ */
+const getDocumentById = async (token, documentId) => {
+  try {
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentsUrl}/${documentId}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const { data } = await axios(reqConfig);
+    return data;
+  } catch (err) {
+    logger.error(err);
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      throw new Error(err);
+    }
+  }
+};
+
 export {
   getAccessToken,
   initiateStagingArea,
   uploadFile,
   getKeywordsGuid,
   archiveDocument,
+  getDocumentById,
 };
