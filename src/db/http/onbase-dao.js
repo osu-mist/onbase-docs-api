@@ -111,6 +111,8 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
       },
       params: { filePart },
       data: fileBuffer,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
     };
 
     await axios(reqConfig);
