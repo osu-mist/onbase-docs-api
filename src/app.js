@@ -6,7 +6,9 @@ import { compose } from 'compose-middleware';
 import config from 'config';
 import express from 'express';
 import { initialize } from 'express-openapi';
+import _ from 'lodash';
 import moment from 'moment';
+import multer from 'multer';
 import git from 'simple-git/promise';
 import 'source-map-support/register';
 
@@ -14,11 +16,9 @@ import { errorBuilder, errorHandler } from 'errors/errors';
 import { authentication } from 'middlewares/authentication';
 import { bodyParserError } from 'middlewares/body-parser-error';
 import { loggerMiddleware } from 'middlewares/logger';
-import { removeUnknownParams } from 'middlewares/remove-unknown-params';
 import { runtimeErrors } from 'middlewares/runtime-errors';
 import { validateBooleanParams } from 'middlewares/validate-boolean-params';
-import { validateNestedObjects } from 'middlewares/validate-nested-objects';
-import { validateOperationParams } from 'middlewares/validate-operation-params';
+import { validateOnbaseProfile } from 'middlewares/validate-onbase-profile';
 import { openapi } from 'utils/load-openapi';
 import { validateDataSource } from 'utils/validate-data-source';
 
@@ -56,6 +56,7 @@ adminApp.use(baseEndpoint, adminAppRouter);
 appRouter.use(loggerMiddleware);
 appRouter.use(authentication);
 appRouter.use(validateBooleanParams);
+appRouter.use(validateOnbaseProfile);
 adminAppRouter.use(authentication);
 
 /**
@@ -107,15 +108,23 @@ initialize({
   app: appRouter,
   apiDoc: {
     ...openapi,
-    'x-express-openapi-additional-middleware': [
-      validateOperationParams,
-      removeUnknownParams,
-      validateNestedObjects,
-    ],
   },
   paths: 'dist/api-routes',
   consumesMiddleware: {
     'application/json': compose([bodyParser.json(), bodyParserError]),
+    'multipart/form-data': (req, res, next) => {
+      multer().any()(req, res, (err) => {
+        if (err) return next(err);
+        if (!req.files || !_.find(req.files, { fieldname: 'uploadedDocument' })) {
+          return errorBuilder(res, 400, ['Filed uploadedDocument is required.']);
+        }
+
+        req.files.forEach((f) => {
+          req.body[f.fieldname] = ''; // Set to empty string to satisfy OpenAPI spec validation
+        });
+        return next();
+      });
+    },
   },
   errorMiddleware: runtimeErrors,
   errorTransformer,

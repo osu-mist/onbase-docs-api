@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Express API Skeleton
-  description: Skeleton for Express APIs
+  title: OnBase Document API
+  description: Wrapper API of Hyland RESTful OnBase Document API
   version: v2
   license:
     name: GNU Affero General Public License Version 3
@@ -12,106 +12,96 @@ info:
     email: isdataarchitecture@oregonstate.edu
 externalDocs:
   description: GitHub Repository
-  url: https://github.com/osu-mist/express-api-skeleton
+  url: https://github.com/osu-mist/onbase-docs-api
 servers:
   - url: https://api.oregonstate.edu/v2
 security:
   - OAuth2:
       - full
 paths:
-  /pets:
-    get:
-      summary: List all pets
+  /onbase-docs/documents:
+    post:
+      summary: Upload document
       tags:
-        - pets
-      description: Get all pets
-      operationId: getPets
-      parameters:
-        - $ref: '#/components/parameters/pageNumber'
-        - $ref: '#/components/parameters/pageSize'
-        - in: query
-          name: filter[species]
-          description: Search by pet species
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: filter[hasOwner]
-          description: Filter results if pet has an owner or not
-          required: false
-          schema:
-            type: boolean
-        - in: query
-          name: filter[age][gt]
-          description: Filter results by age
-          required: false
-          schema:
-            type: number
-            format: integer
-        - in: query
-          name: filter[age][lt]
-          description: Filter results by age
-          required: false
-          schema:
-            type: number
-            format: integer
+        - documents
+      description: Upload document
+      operationId: postDocument
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                uploadedDocument:
+                  type: string
+                  format: binary
+                documentTypeId:
+                  type: string
+                  description: The Id of the document type to store the document into
+                  example: '1234'
+              required:
+                 - uploadedDocument
+                 - documentTypeId
+              additionalProperties: false
       responses:
-        '200':
-          description: Successful response
+        '201':
+          description: Document uploaded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PetSetResult'
+                $ref: '#/components/schemas/DocumentResult'
         '400':
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
-    post:
-      summary: Add a new pet
+  /onbase-docs/documents/{documentId}/keywords:
+    patch:
+      summary: Sets all keyword values for an indexed document
       tags:
-        - pets
-      operationId: postPet
+        - documents
+        - keywords
+      description: Sets all keyword values for an indexed document. Existing values will be replaced with the supplied list of keyword values grouped by keyword type group and keyword type.
+      operationId: patchKeywords
+      parameters:
+        - name: documentId
+          in: path
+          description: The unique identifier of a document
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PetPostBody'
-      responses:
-        '201':
-          description: Pet successfully created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PetResult'
-        '400':
-          $ref: '#/components/responses/400'
-        '409':
-          $ref: '#/components/responses/409'
-        '500':
-          $ref: '#/components/responses/500'
-  /pets/{id}:
-    get:
-      summary: Info for a specific pet
-      tags:
-        - pets
-      description: Get pet by unique ID
-      operationId: getPetById
-      parameters:
-        - name: id
-          in: path
-          description: Unique Pet ID
-          required: true
-          schema:
-            type: string
-            pattern: '^[A-Za-z0-9-]+$'
+              type: object
+              description: Instance data for keywords on a document
+              properties:
+                keywords:
+                  type: array
+                  items:
+                    properties:
+                      keywordTypeId:
+                        type: string
+                        description: The unique identifier of the keyword type for this keyword value
+                        example: '123'
+                      values:
+                        type: array
+                        description: A List of keyword values that contain various formats of the keyword value
+                        items:
+                          type: string
+                          example: '123456789'
+                    required:
+                      - keywordTypeId
+                      - values
+                    additionalProperties: false
       responses:
         '200':
-          description: Successful response
+          description: Document keyword updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PetResult'
+                $ref: '#/components/schemas/KeywordsResult'
         '404':
           $ref: '#/components/responses/404'
         '500':
@@ -171,149 +161,95 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResult'
   schemas:
-    Meta:
-      properties:
-        totalResults:
-          type: integer
-          description: Total number of results
-          example: 10
-        totalPages:
-          type: integer
-          description: Total number of pages
-          example: 10
-        currentPageNumber:
-          type: integer
-          description: Page number of the returned results
-          example: 1
-        currentPageSize:
-          type: integer
-          description: Number of results per page
-          example: 25
     SelfLink:
       properties:
         self:
           type: string
           format: uri
           description: Self-link of current resource
-    PaginationLinks:
-      properties:
-        first:
-          type: string
-          format: uri
-          description: The first page of data
-        last:
-          type: string
-          format: uri
-          description: The last page of data
-        prev:
-          type: string
-          format: uri
-          nullable: true
-          description: The previous page of data
-        next:
-          type: string
-          format: uri
-          nullable: true
-          description: The next page of data
-    PetResource:
+    DocumentResource:
       properties:
         id:
           type: string
-          description: A unique ID of pet
+          description: The unique identifier of a document
         type:
           type: string
           enum:
-            - pet
+            - document
         links:
           $ref: '#/components/schemas/SelfLink'
         attributes:
+          type: object
           properties:
             name:
               type: string
-              description: Name of pet
-              example: Hedwig
-            owner:
-              type: string
-              description: Name of owner
-              example: Harry Potter
-            species:
-              type: string
-              description: Species of pet
-              example: Owl
-            age:
+              description: Name of the file
+              example: 'Sample file name'
+            size:
               type: number
               format: integer
-              description: Age of pet
-              example: 5
-            size:
-              type: object
-              properties:
-                length:
-                  type: number
-                  format: float
-                  description: Length in inches
-                  example: 18
-                chest:
-                  type: number
-                  format: float
-                  description: Chest size in inches
-                  example: 16
-                weight:
-                  type: number
-                  format: float
-                  description: Weight in pounds
-                  example: 8
-    PetPostBody:
-      type: object
+              description: Size of the file in bytes
+              example: 1000
+            extension:
+              type: string
+              description: Extension of the file being uploaded
+              example: 'pdf'
+            documentTypeId:
+              type: string
+              description: The ID of the document type to store the document into
+              example: '1234'
+            storedDate:
+              type: string
+              format: date-time
+              description: The date/time this document was stored
+              example: '2017-07-21T17:32:28Z'
+            status:
+              type: string
+              description: The document status of Active, Deleted or Inactive
+              enum:
+                - Active
+                - Deleted
+                - Inactive
+    KeywordsResource:
       properties:
-        data:
+        id:
+          type: string
+          description: The unique identifier of a document keywords. It's as same as the document ID
+        type:
+          type: string
+          enum:
+            - keywords
+        links:
+          $ref: '#/components/schemas/SelfLink'
+        attributes:
           type: object
           properties:
-            type:
-              $ref: '#/components/schemas/PetResource/properties/type'
-            attributes:
-              type: object
-              properties:
-                name:
-                  $ref: '#/components/schemas/PetResource/properties/attributes/properties/name'
-                owner:
-                  $ref: '#/components/schemas/PetResource/properties/attributes/properties/owner'
-                species:
-                  $ref: '#/components/schemas/PetResource/properties/attributes/properties/species'
-                age:
-                  $ref: '#/components/schemas/PetResource/properties/attributes/properties/age'
-                size:
-                  $ref: '#/components/schemas/PetResource/properties/attributes/properties/size'
-              required:
-                - name
-                - owner
-                - species
-              additionalProperties: false
-          required:
-            - type
-            - attributes
-          additionalProperties: false
-      required:
-       - data
-      additionalProperties: false
-    PetResult:
+            keywords:
+              type: array
+              items:
+                properties:
+                  keywordTypeId:
+                    type: string
+                    description: The unique identifier of the keyword type for this keyword value
+                    example: '123'
+                  values:
+                    type: array
+                    description: A List of keyword values that contain various formats of the keyword value
+                    items:
+                      type: string
+                      example: '123456789'
+    DocumentResult:
       properties:
         links:
           $ref: '#/components/schemas/SelfLink'
         data:
-          $ref: '#/components/schemas/PetResource'
-    PetSetResult:
+          $ref: '#/components/schemas/DocumentResource'
+    KeywordsResult:
       properties:
         links:
-          allOf:
-            - $ref: '#/components/schemas/SelfLink'
-            - $ref: '#/components/schemas/PaginationLinks'
-        meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: '#/components/schemas/SelfLink'
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/PetResource'
+          $ref: '#/components/schemas/KeywordsResource'
     ErrorObject:
       properties:
         status:

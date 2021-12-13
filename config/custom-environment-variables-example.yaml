@@ -8,7 +8,14 @@ authentication:
   password: 'PASSWD'
 
 dataSources:
-  oracledb:
-    connectString: 'DB_URL'
-    user: 'DB_USER'
-    password: 'DB_PASSWD'
+  http:
+    baseUri: 'ONBASE_BASE_URL'
+    idpServer: 'ONBASE_IDP_SERVER'
+    apiServer: 'ONBASE_API_SERVER'
+    tenant: 'ONBASE_TENANT'
+    clientId: 'ONBASE_CLIENT_ID'
+    clientSecret: 'ONBASE_CLIENT_SECRET'
+    onbaseProfiles:
+      profile1:
+        username: 'ONBASE_PROFILE1_USERNAME'
+        password: 'ONBASE_PROFILE1_PASSWORD'
