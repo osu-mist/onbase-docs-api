@@ -23,7 +23,12 @@ const post = async (req, res) => {
 
     // Upload document information from form data
     const uploadedDocument = _.find(files, { fieldname: 'uploadedDocument' });
-    const { size, buffer, mimetype } = uploadedDocument;
+    const {
+      size,
+      buffer,
+      originalname,
+      mimetype,
+    } = uploadedDocument;
 
     // Get access token
     const token = await getAccessToken(onbaseProfile);
@@ -35,7 +40,7 @@ const post = async (req, res) => {
     }
 
     // Prepare staging area
-    const fileExtension = /[^/]*$/.exec(mimetype)[0];
+    const fileExtension = /[^.]*$/.exec(originalname)[0];
     const { id: uploadId, numberOfParts } = await initiateStagingArea(token, fileExtension, size);
 
     // Upload file
