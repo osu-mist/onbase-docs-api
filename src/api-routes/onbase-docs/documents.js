@@ -43,9 +43,12 @@ const post = async (req, res) => {
     const fileExtension = /[^.]*$/.exec(originalname)[0];
     const { id: uploadId, numberOfParts } = await initiateStagingArea(token, fileExtension, size);
 
-    // Upload file
-    // TODO: numberOfParts logic handlers
-    await uploadFile(token, uploadId, numberOfParts, mimetype, buffer);
+    // Upload file in order
+    // eslint-disable-next-line no-restricted-syntax
+    for (const numberOfPart of _.range(numberOfParts)) {
+      // eslint-disable-next-line no-await-in-loop
+      await uploadFile(token, uploadId, numberOfPart + 1, mimetype, buffer);
+    }
 
     // Archive document
     const documentId = await archiveDocument(
