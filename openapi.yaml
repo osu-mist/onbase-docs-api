@@ -54,21 +54,35 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+  /onbase-docs/documents/{documentId}:
+    get:
+      summary: Get document metadata by document ID
+      tags:
+        - documents
+      description: Gets document metadata by document ID
+      operationId: getDocumentById
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      responses:
+        '200':
+          description: Get document metadata successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResult'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
   /onbase-docs/documents/{documentId}/keywords:
     patch:
       summary: Sets all keyword values for an indexed document
       tags:
-        - documents
         - keywords
-      description: Sets all keyword values for an indexed document. Existing values will be replaced with the supplied list of keyword values grouped by keyword type group and keyword type.
+      description: Sets all keyword values for an indexed document. Existing values will be replaced with the supplied list of keyword values grouped by keyword type group and keyword type
       operationId: patchKeywords
       parameters:
-        - name: documentId
-          in: path
-          description: The unique identifier of a document
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/documentId'
       requestBody:
         required: true
         content:
@@ -116,25 +130,13 @@ components:
           scopes:
             full: Full access to the API
   parameters:
-    pageNumber:
-      name: page[number]
-      in: query
-      required: false
-      description: Page number of results
+    documentId:
+      name: documentId
+      in: path
+      description: The unique identifier of a document
+      required: true
       schema:
-        type: integer
-        minimum: 1
-        default: 1
-    pageSize:
-      name: page[size]
-      in: query
-      required: false
-      description: Number of results to return
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 500
-        default: 25
+        type: string
   responses:
     '400':
       description: Bad request
@@ -185,15 +187,6 @@ components:
               type: string
               description: Name of the file
               example: 'Sample file name'
-            size:
-              type: number
-              format: integer
-              description: Size of the file in bytes
-              example: 1000
-            extension:
-              type: string
-              description: Extension of the file being uploaded
-              example: 'pdf'
             documentTypeId:
               type: string
               description: The ID of the document type to store the document into

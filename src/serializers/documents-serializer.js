@@ -14,15 +14,17 @@ const documentResourceUrl = resourcePathLink(apiBaseUrl, documentResourcePath);
 /**
  * Serialize document resource to JSON API
  *
- * @param {object} documentMetaData document meta data
+ * @param {object} documentMetadata document metadata
  * @param {boolean} req Express request object
  * @returns {object} Serialized documentResource object
  */
-const serializeDocument = (documentMetaData, { method, query }) => {
+const serializeDocument = (documentMetadata, { method, query }) => {
   const baseUrl = method === 'POST'
     ? documentResourceUrl
-    : resourcePathLink(documentResourceUrl, documentMetaData.id);
+    : resourcePathLink(documentResourceUrl, documentMetadata.id);
   const topLevelSelfLink = paramsLink(baseUrl, query);
+
+  documentMetadata.documentTypeId = documentMetadata.typeId;
 
   const serializerArgs = {
     identifierField: 'id',
@@ -36,6 +38,6 @@ const serializeDocument = (documentMetaData, { method, query }) => {
   return new JsonApiSerializer(
     documentResourceType,
     serializerOptions(serializerArgs),
-  ).serialize(documentMetaData);
+  ).serialize(documentMetadata);
 };
 export { serializeDocument };
