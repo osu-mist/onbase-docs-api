@@ -34,7 +34,7 @@ const serializeKeywords = (updatedKeywordCollection, { method, query }) => {
     resourcePath: keywordsResourcePath,
     topLevelSelfLink,
     query,
-    enableDataLinks: true,
+    enableDataLinks: false,
   };
 
   return new JsonApiSerializer(
