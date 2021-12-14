@@ -304,6 +304,42 @@ const patchDocumentKeywords = async (token, documentId, currentKeywordCollection
   }
 };
 
+/**
+ * Get document content
+ *
+ * @param {string} token access token
+ * @param {string} documentId the unique identifier of a document type
+ * @returns {Promise} resolves if document content fetched or rejects otherwise
+ */
+const getDocumentContent = async (token, documentId) => {
+  try {
+    const revisionId = 'latest';
+    const fileTypeId = 'default';
+
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentsUrl}/${documentId}/revisions/${revisionId}/renditions/${fileTypeId}/content`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: 'arraybuffer',
+    };
+
+    const data = await axios(reqConfig);
+    return data;
+  } catch (err) {
+    logger.error(err);
+    if (err.response && err.response.status === 404) {
+      logger.error(err.response.data.errors);
+      return new Error(err.response.data.detail);
+    } if (err.response && (err.response.status !== 200 || err.response.status !== 206)) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    }
+    throw new Error(err);
+  }
+};
+
 export {
   getAccessToken,
   initiateStagingArea,
@@ -313,4 +349,5 @@ export {
   getDocumentById,
   getDocumentKeywords,
   patchDocumentKeywords,
+  getDocumentContent,
 };
