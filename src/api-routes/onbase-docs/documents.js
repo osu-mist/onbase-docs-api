@@ -30,6 +30,11 @@ const post = async (req, res) => {
       mimetype,
     } = uploadedDocument;
 
+    // File size limit: 25 MB
+    if (size > 25000000) {
+      return errorBuilder(res, 413);
+    }
+
     // Get access token
     const token = await getAccessToken(onbaseProfile);
 
