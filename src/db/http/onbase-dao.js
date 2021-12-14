@@ -48,11 +48,11 @@ const getAccessToken = async (onbaseProfile) => {
     const { data: { access_token: accessToken } } = await axios(reqConfig);
     return accessToken;
   } catch (err) {
-    logger.error(err);
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.error);
       throw new Error(err.response.data.error_description);
     } else {
+      logger.error(err);
       throw new Error(err);
     }
   }
@@ -80,11 +80,11 @@ const initiateStagingArea = async (token, fileExtension, fileSize) => {
     const { data } = await axios(reqConfig);
     return data;
   } catch (err) {
-    logger.error(err);
     if (err.response && err.response.status !== 201) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
+      logger.error(err);
       throw new Error(err);
     }
   }
@@ -115,13 +115,16 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
       maxBodyLength: Infinity,
     };
 
-    await axios(reqConfig);
+    return await axios(reqConfig);
   } catch (err) {
-    logger.error(err);
-    if (err.response && err.response.status !== 204) {
+    if (err.response && err.response.status === 413) {
+      logger.error(err.response.data);
+      return new Error(err.response.data);
+    } if (err.response && err.response.status !== 204) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
+      logger.error(err);
       throw new Error(err);
     }
   }
@@ -147,7 +150,6 @@ const getDefaultKeywordsGuid = async (token, documentTypeId) => {
     const { data: { keywordGuid } } = await axios(reqConfig);
     return keywordGuid;
   } catch (err) {
-    logger.error(err);
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
       return new Error(err.response.data.detail);
@@ -155,6 +157,7 @@ const getDefaultKeywordsGuid = async (token, documentTypeId) => {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     }
+    logger.error(err);
     throw new Error(err);
   }
 };
@@ -189,11 +192,11 @@ const archiveDocument = async (token, documentTypeId, uploadId, keywordsGuid) =>
     const { data: { id: documentId } } = await axios(reqConfig);
     return documentId;
   } catch (err) {
-    logger.error(err);
     if (err.response && err.response.status !== 201) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
+      logger.error(err);
       throw new Error(err);
     }
   }
@@ -219,11 +222,11 @@ const getDocumentById = async (token, documentId) => {
     const { data } = await axios(reqConfig);
     return data;
   } catch (err) {
-    logger.error(err);
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
+      logger.error(err);
       throw new Error(err);
     }
   }
@@ -249,15 +252,16 @@ const getDocumentKeywords = async (token, documentId) => {
     const { data } = await axios(reqConfig);
     return data;
   } catch (err) {
-    logger.error(err);
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
       return new Error(err.response.data.detail);
     } if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
     }
-    throw new Error(err);
   }
 };
 

@@ -90,6 +90,19 @@ const conflict = (detail) => new JsonApiError(error(
 ));
 
 /**
+ * [413] Return a Payload Too Large error object
+ *
+ * @param {string} detail A human-readable explanation
+ * @returns {object} Payload Too Large error object
+ */
+const payloadTooLarge = (detail) => new JsonApiError(error(
+  '413',
+  'Payload Too Large',
+  '1413',
+  detail || 'Payload too large',
+));
+
+/**
  * [500] Return a Internal Server Error error object
  *
  * @param {string} detail A human-readable explanation
@@ -116,6 +129,7 @@ const errorBuilder = (res, status, detail) => {
     403: forbidden(detail),
     404: notFound(detail),
     409: conflict(detail),
+    413: payloadTooLarge(detail),
   };
   res.status(status).send(errorDictionary[status]);
 };

@@ -52,6 +52,8 @@ paths:
                 $ref: '#/components/schemas/DocumentResult'
         '400':
           $ref: '#/components/responses/400'
+        '413':
+          $ref: '#/components/responses/413'
         '500':
           $ref: '#/components/responses/500'
   /onbase-docs/documents/{documentId}:
@@ -192,6 +194,12 @@ components:
             $ref: '#/components/schemas/ErrorResult'
     '409':
       description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResult'
+    '413':
+      description: Payload Too Large
       content:
         application/json:
           schema:

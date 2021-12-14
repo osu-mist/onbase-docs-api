@@ -30,6 +30,11 @@ const post = async (req, res) => {
       mimetype,
     } = uploadedDocument;
 
+    // File size limit: 25 MB
+    if (size > 25000000) {
+      return errorBuilder(res, 413);
+    }
+
     // Get access token
     const token = await getAccessToken(onbaseProfile);
 
@@ -47,7 +52,10 @@ const post = async (req, res) => {
     // eslint-disable-next-line no-restricted-syntax
     for (const numberOfPart of _.range(numberOfParts)) {
       // eslint-disable-next-line no-await-in-loop
-      await uploadFile(token, uploadId, numberOfPart + 1, mimetype, buffer);
+      const uploadResult = await uploadFile(token, uploadId, numberOfPart + 1, mimetype, buffer);
+      if (uploadResult instanceof Error) {
+        return errorBuilder(res, 413, [uploadResult.message]);
+      }
     }
 
     // Archive document
