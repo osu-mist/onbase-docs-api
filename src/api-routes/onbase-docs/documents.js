@@ -58,11 +58,11 @@ const post = async (req, res) => {
       keywordsGuid,
     );
 
-    // Get document meta data
-    const documentMetaData = await getDocumentById(token, documentId);
+    // Get document metadata
+    const documentMetadata = await getDocumentById(token, documentId);
 
     // Serialize document
-    const serializedDocument = serializeDocument(documentMetaData, req);
+    const serializedDocument = serializeDocument(documentMetadata, req);
 
     return res.status(201).send(serializedDocument);
   } catch (err) {
