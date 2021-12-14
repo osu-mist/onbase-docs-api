@@ -24,6 +24,8 @@ const serializeDocument = (documentMetaData, { method, query }) => {
     : resourcePathLink(documentResourceUrl, documentMetaData.id);
   const topLevelSelfLink = paramsLink(baseUrl, query);
 
+  documentMetaData.documentTypeId = documentMetaData.typeId;
+
   const serializerArgs = {
     identifierField: 'id',
     resourceKeys: documentResourceKeys,

@@ -60,9 +60,6 @@ const post = async (req, res) => {
 
     // Get document meta data
     const documentMetaData = await getDocumentById(token, documentId);
-    documentMetaData.size = size;
-    documentMetaData.extension = fileExtension;
-    documentMetaData.documentTypeId = documentTypeId;
 
     // Serialize document
     const serializedDocument = serializeDocument(documentMetaData, req);

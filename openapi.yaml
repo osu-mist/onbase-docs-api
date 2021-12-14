@@ -185,15 +185,6 @@ components:
               type: string
               description: Name of the file
               example: 'Sample file name'
-            size:
-              type: number
-              format: integer
-              description: Size of the file in bytes
-              example: 1000
-            extension:
-              type: string
-              description: Extension of the file being uploaded
-              example: 'pdf'
             documentTypeId:
               type: string
               description: The ID of the document type to store the document into
