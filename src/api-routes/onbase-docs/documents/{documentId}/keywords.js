@@ -8,6 +8,37 @@ import {
 import { serializeKeywords } from '../../../../serializers/keywords-serializer';
 
 /**
+ * Get document keywords
+ *
+ * @type {RequestHandler}
+ */
+const get = async (req, res) => {
+  try {
+    const { headers, params: { documentId } } = req;
+    const onbaseProfile = headers['onbase-profile'];
+
+    // Get access token
+    const token = await getAccessToken(onbaseProfile);
+
+    // Get current keyword collection
+    const currentKeywordCollection = await getDocumentKeywords(token, documentId);
+    if (currentKeywordCollection instanceof Error) {
+      return errorBuilder(res, 404, currentKeywordCollection.message);
+    }
+
+    // Serialize keywords
+    currentKeywordCollection.id = documentId;
+    currentKeywordCollection.keywords = currentKeywordCollection.items[0].keywords;
+
+    const serializedKeywords = serializeKeywords(currentKeywordCollection, req);
+
+    return res.status(200).send(serializedKeywords);
+  } catch (err) {
+    return errorHandler(res, err);
+  }
+};
+
+/**
  * Patch document keywords
  *
  * @type {RequestHandler}
@@ -47,4 +78,4 @@ const patch = async (req, res) => {
   }
 };
 
-export { patch };
+export { get, patch };

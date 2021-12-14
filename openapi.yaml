@@ -75,6 +75,25 @@ paths:
         '500':
           $ref: '#/components/responses/500'
   /onbase-docs/documents/{documentId}/keywords:
+    get:
+      summary: Get keywords for an indexed document
+      tags:
+        - keywords
+      description: Gets the keyword values for a document grouped by keyword type group and keyword type
+      operationId: getKeywords
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      responses:
+        '200':
+          description: Document keyword fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeywordsResult'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
     patch:
       summary: Sets all keyword values for an indexed document
       tags:
