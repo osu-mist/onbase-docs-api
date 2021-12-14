@@ -115,10 +115,13 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
       maxBodyLength: Infinity,
     };
 
-    await axios(reqConfig);
+    return await axios(reqConfig);
   } catch (err) {
     logger.error(err);
-    if (err.response && err.response.status !== 204) {
+    if (err.response && err.response.status === 413) {
+      logger.error(err.response.data);
+      return new Error(err.response.data);
+    } if (err.response && err.response.status !== 204) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
