@@ -46,12 +46,12 @@ const post = async (req, res) => {
 
     // Get keywords GUID
     result = await getDefaultKeywordsGuid(token, fbLb, documentTypeId);
+    if (result instanceof Error) {
+      return errorBuilder(res, 400, [result.message]);
+    }
+
     const keywordsGuid = result[0];
     [, fbLb] = result;
-
-    if (keywordsGuid instanceof Error) {
-      return errorBuilder(res, 400, [keywordsGuid.message]);
-    }
 
     // Prepare staging area
     const fileExtension = /[^.]*$/.exec(originalname)[0];
@@ -65,10 +65,10 @@ const post = async (req, res) => {
     for (const numberOfPart of _.range(numberOfParts)) {
       // eslint-disable-next-line no-await-in-loop
       result = await uploadFile(token, fbLb, uploadId, numberOfPart + 1, mimetype, buffer);
-      [fbLb] = result;
       if (result instanceof Error) {
         return errorBuilder(res, 413, [result.message]);
       }
+      [fbLb] = result;
     }
 
     // Archive document

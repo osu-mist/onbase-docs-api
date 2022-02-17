@@ -178,8 +178,9 @@ const getDefaultKeywordsGuid = async (token, fbLb, documentTypeId) => {
     return [keywordGuid, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status === 404) {
-      logger.error(err.response.data.errors);
-      return new Error(err.response.data.detail);
+      const error = err.response.data.detail || err.response.data.errors;
+      logger.error(error);
+      return new Error(error);
     } if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
