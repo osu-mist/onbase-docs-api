@@ -18,10 +18,10 @@ const get = async (req, res) => {
     const onbaseProfile = headers['onbase-profile'];
 
     // Get access token
-    const token = await getAccessToken(onbaseProfile);
+    const [token, fbLb] = await getAccessToken(onbaseProfile);
 
     // Get current keyword collection
-    const currentKeywordCollection = await getDocumentKeywords(token, documentId);
+    const [currentKeywordCollection] = await getDocumentKeywords(token, fbLb, documentId);
     if (currentKeywordCollection instanceof Error) {
       return errorBuilder(res, 404, currentKeywordCollection.message);
     }
@@ -48,20 +48,36 @@ const patch = async (req, res) => {
     const { headers, params: { documentId }, body: { keywords: newKeywords } } = req;
     const onbaseProfile = headers['onbase-profile'];
 
+    let result;
+    // the load balancer cookie (FB_LB) is updated after every request
+    let fbLb;
     // Get access token
-    const token = await getAccessToken(onbaseProfile);
+    result = await getAccessToken(onbaseProfile);
+    const token = result[0];
+    [, fbLb] = result;
 
     // Get current keyword collection
-    const currentKeywordCollection = await getDocumentKeywords(token, documentId);
+    result = await getDocumentKeywords(token, fbLb, documentId);
+    const currentKeywordCollection = result[0];
+    [, fbLb] = result;
+
     if (currentKeywordCollection instanceof Error) {
       return errorBuilder(res, 404, currentKeywordCollection.message);
     }
 
     // Update document keywords
-    await patchDocumentKeywords(token, documentId, currentKeywordCollection, newKeywords);
+    result = await patchDocumentKeywords(
+      token,
+      fbLb,
+      documentId,
+      currentKeywordCollection,
+      newKeywords,
+    );
+    [, fbLb] = result;
 
     // Get updated keyword collection
-    const updatedKeywordCollection = await getDocumentKeywords(token, documentId);
+    result = await getDocumentKeywords(token, fbLb, documentId);
+    const updatedKeywordCollection = result[0];
     if (updatedKeywordCollection instanceof Error) {
       throw new Error('Document missing after update.');
     }
