@@ -43,6 +43,7 @@ const getAccessToken = async (onbaseProfile) => {
       url: `${onbaseIdpUrl}/connect/token`,
       headers: formData.getHeaders(),
       data: formData,
+      withCredentials: true,
     };
 
     const { data: { access_token: accessToken } } = await axios(reqConfig);
@@ -75,6 +76,7 @@ const initiateStagingArea = async (token, fileExtension, fileSize) => {
         Authorization: `Bearer ${token}`,
       },
       data: { fileExtension, fileSize },
+      withCredentials: true,
     };
 
     const { data } = await axios(reqConfig);
@@ -113,6 +115,7 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
       data: fileBuffer,
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
+      withCredentials: true,
     };
 
     return await axios(reqConfig);
@@ -145,6 +148,7 @@ const getDefaultKeywordsGuid = async (token, documentTypeId) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      withCredentials: true,
     };
 
     const { data: { keywordGuid } } = await axios(reqConfig);
@@ -187,6 +191,7 @@ const archiveDocument = async (token, documentTypeId, uploadId, keywordsGuid) =>
           items: [],
         },
       },
+      withCredentials: true,
     };
 
     const { data: { id: documentId } } = await axios(reqConfig);
@@ -217,6 +222,7 @@ const getDocumentById = async (token, documentId) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      withCredentials: true,
     };
 
     const { data } = await axios(reqConfig);
@@ -247,6 +253,7 @@ const getDocumentKeywords = async (token, documentId) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      withCredentials: true,
     };
 
     const { data } = await axios(reqConfig);
@@ -293,6 +300,7 @@ const patchDocumentKeywords = async (token, documentId, currentKeywordCollection
         Authorization: `Bearer ${token}`,
       },
       data: currentKeywordCollection,
+      withCredentials: true,
     };
 
     const data = await axios(reqConfig);
@@ -327,6 +335,7 @@ const getDocumentContent = async (token, documentId) => {
         Authorization: `Bearer ${token}`,
       },
       responseType: 'arraybuffer',
+      withCredentials: true,
     };
 
     const data = await axios(reqConfig);
