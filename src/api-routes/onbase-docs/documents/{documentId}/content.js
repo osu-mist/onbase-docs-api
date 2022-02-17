@@ -15,14 +15,15 @@ const get = async (req, res) => {
     const { headers, params: { documentId } } = req;
     const onbaseProfile = headers['onbase-profile'];
 
+    let result;
+
     // Get access token
-    const token = await getAccessToken(onbaseProfile);
+    result = await getAccessToken(onbaseProfile);
+    const [token, fbLb] = result;
 
     // Get document content
-    const {
-      headers: documentContentHeaders,
-      data: documentContent,
-    } = await getDocumentContent(token, documentId);
+    result = await getDocumentContent(token, fbLb, documentId);
+    const { headers: documentContentHeaders, data: documentContent } = result[0];
     res.setHeader('Content-Type', documentContentHeaders['content-type']);
 
     return res.status(200).send(documentContent);

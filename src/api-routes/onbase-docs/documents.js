@@ -35,39 +35,55 @@ const post = async (req, res) => {
       return errorBuilder(res, 413);
     }
 
+    let result;
+    // the load balancer cookie (FB_LB) is updated after every request
+    let fbLb;
+
     // Get access token
-    const token = await getAccessToken(onbaseProfile);
+    result = await getAccessToken(onbaseProfile);
+    const token = result[0];
+    [, fbLb] = result;
 
     // Get keywords GUID
-    const keywordsGuid = await getDefaultKeywordsGuid(token, documentTypeId);
+    result = await getDefaultKeywordsGuid(token, fbLb, documentTypeId);
+    const keywordsGuid = result[0];
+    [, fbLb] = result;
+
     if (keywordsGuid instanceof Error) {
       return errorBuilder(res, 400, [keywordsGuid.message]);
     }
 
     // Prepare staging area
     const fileExtension = /[^.]*$/.exec(originalname)[0];
-    const { id: uploadId, numberOfParts } = await initiateStagingArea(token, fileExtension, size);
+    result = await initiateStagingArea(token, fbLb, fileExtension, size);
+
+    const { id: uploadId, numberOfParts } = result[0];
+    [, fbLb] = result;
 
     // Upload file in order
     // eslint-disable-next-line no-restricted-syntax
     for (const numberOfPart of _.range(numberOfParts)) {
       // eslint-disable-next-line no-await-in-loop
-      const uploadResult = await uploadFile(token, uploadId, numberOfPart + 1, mimetype, buffer);
-      if (uploadResult instanceof Error) {
-        return errorBuilder(res, 413, [uploadResult.message]);
+      result = await uploadFile(token, fbLb, uploadId, numberOfPart + 1, mimetype, buffer);
+      [fbLb] = result;
+      if (result instanceof Error) {
+        return errorBuilder(res, 413, [result.message]);
       }
     }
 
     // Archive document
-    const documentId = await archiveDocument(
+    result = await archiveDocument(
       token,
+      fbLb,
       documentTypeId,
       uploadId,
       keywordsGuid,
     );
+    const documentId = result[0];
+    [, fbLb] = result;
 
     // Get document metadata
-    const documentMetadata = await getDocumentById(token, documentId);
+    const documentMetadata = await getDocumentById(token, fbLb, documentId);
 
     // Serialize document
     const serializedDocument = serializeDocument(documentMetadata, req);

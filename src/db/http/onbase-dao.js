@@ -2,6 +2,7 @@ import axios from 'axios';
 import config from 'config';
 import FormData from 'form-data';
 import _ from 'lodash';
+import setCookie from 'set-cookie-parser';
 
 import { logger } from 'utils/logger';
 
@@ -18,6 +19,18 @@ const {
 const onbaseIdpUrl = `${baseUri}/app/${idpServer}`;
 const onbaseDocumentsUrl = `${baseUri}/app/${apiServer}/onbase/core/documents`;
 const onbaseDocumentTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/document-types`;
+
+/**
+ * Get FB_LB cookie token from response headers
+ *
+ * @param {string} res response object
+ * @returns {string} FB_LB cookie value
+ */
+const getFbLbCookie = (res) => {
+  const cookies = setCookie.parse(res);
+  const fbLb = _.filter(cookies, { name: 'FB_LB' })[0];
+  return fbLb.value;
+};
 
 /**
  * Get API access token from OnBase IDP server
@@ -46,8 +59,9 @@ const getAccessToken = async (onbaseProfile) => {
       withCredentials: true,
     };
 
-    const { data: { access_token: accessToken } } = await axios(reqConfig);
-    return accessToken;
+    const res = await axios(reqConfig);
+    const { data: { access_token: accessToken } } = res;
+    return [accessToken, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.error);
@@ -63,24 +77,27 @@ const getAccessToken = async (onbaseProfile) => {
  * Prepares the staging area to start the upload. Returns a reference to the file being uploaded
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} fileExtension file extension
  * @param {number} fileSize file size
  * @returns {Promise} resolves if staging area initialized or rejects otherwise
  */
-const initiateStagingArea = async (token, fileExtension, fileSize) => {
+const initiateStagingArea = async (token, fbLb, fileExtension, fileSize) => {
   try {
     const reqConfig = {
       method: 'post',
       url: `${onbaseDocumentsUrl}/uploads`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       data: { fileExtension, fileSize },
       withCredentials: true,
     };
 
-    const { data } = await axios(reqConfig);
-    return data;
+    const res = await axios(reqConfig);
+
+    return [res.data, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 201) {
       logger.error(err.response.data.errors);
@@ -96,13 +113,14 @@ const initiateStagingArea = async (token, fileExtension, fileSize) => {
  * Prepares the staging area to start the upload. Returns a reference to the file being uploaded
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} uploadId the unique reference to the file being uploaded
  * @param {number} filePart part number of the file to upload
  * @param {string} mimeType media type
  * @param {object} fileBuffer binary content for file upload
  * @returns {Promise} resolves if file uploaded or rejects otherwise
  */
-const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
+const uploadFile = async (token, fbLb, uploadId, filePart, mimeType, fileBuffer) => {
   try {
     const reqConfig = {
       method: 'put',
@@ -110,6 +128,7 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': mimeType,
+        Cookie: `FB_LB=${fbLb}`,
       },
       params: { filePart },
       data: fileBuffer,
@@ -118,7 +137,8 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
       withCredentials: true,
     };
 
-    return await axios(reqConfig);
+    const res = await axios(reqConfig);
+    return [getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status === 413) {
       logger.error(err.response.data);
@@ -137,22 +157,25 @@ const uploadFile = async (token, uploadId, filePart, mimeType, fileBuffer) => {
  * Get default keywords GUID string to ensure integrity of restricted keyword values
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} documentTypeId the unique identifier of a document type
  * @returns {Promise} resolves if keywords GUID fetched or rejects otherwise
  */
-const getDefaultKeywordsGuid = async (token, documentTypeId) => {
+const getDefaultKeywordsGuid = async (token, fbLb, documentTypeId) => {
   try {
     const reqConfig = {
       method: 'get',
       url: `${onbaseDocumentTypesUrl}/${documentTypeId}/default-keywords`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       withCredentials: true,
     };
 
-    const { data: { keywordGuid } } = await axios(reqConfig);
-    return keywordGuid;
+    const res = await axios(reqConfig);
+    const { keywordGuid } = res.data;
+    return [keywordGuid, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
@@ -170,18 +193,20 @@ const getDefaultKeywordsGuid = async (token, documentTypeId) => {
  * Finishes the document upload by archiving the document into the given document type
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} documentTypeId the unique identifier of a document type
  * @param {string} uploadId file uploaded ID
  * @param {string} keywordsGuid keywords GUID string
  * @returns {Promise} resolves if document archived successfully or rejects otherwise
  */
-const archiveDocument = async (token, documentTypeId, uploadId, keywordsGuid) => {
+const archiveDocument = async (token, fbLb, documentTypeId, uploadId, keywordsGuid) => {
   try {
     const reqConfig = {
       method: 'post',
       url: `${onbaseDocumentsUrl}`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       data: {
         documentTypeId,
@@ -194,8 +219,9 @@ const archiveDocument = async (token, documentTypeId, uploadId, keywordsGuid) =>
       withCredentials: true,
     };
 
-    const { data: { id: documentId } } = await axios(reqConfig);
-    return documentId;
+    const res = await axios(reqConfig);
+    const { data: { id: documentId } } = res;
+    return [documentId, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 201) {
       logger.error(err.response.data.errors);
@@ -211,16 +237,18 @@ const archiveDocument = async (token, documentTypeId, uploadId, keywordsGuid) =>
  * Get document metadata
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} documentId the unique identifier of a document.
  * @returns {Promise} resolves if document meta data fetched successfully or rejects otherwise
  */
-const getDocumentById = async (token, documentId) => {
+const getDocumentById = async (token, fbLb, documentId) => {
   try {
     const reqConfig = {
       method: 'get',
       url: `${onbaseDocumentsUrl}/${documentId}`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       withCredentials: true,
     };
@@ -242,22 +270,24 @@ const getDocumentById = async (token, documentId) => {
  * Get document keywords
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} documentId the unique identifier of a document type
  * @returns {Promise} resolves if document keywords fetched or rejects otherwise
  */
-const getDocumentKeywords = async (token, documentId) => {
+const getDocumentKeywords = async (token, fbLb, documentId) => {
   try {
     const reqConfig = {
       method: 'get',
       url: `${onbaseDocumentsUrl}/${documentId}/keywords`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       withCredentials: true,
     };
 
-    const { data } = await axios(reqConfig);
-    return data;
+    const res = await axios(reqConfig);
+    return [res.data, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
@@ -275,12 +305,19 @@ const getDocumentKeywords = async (token, documentId) => {
 /**
  * Get document metadata
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} documentId the unique identifier of a document.
  * @param {object} currentKeywordCollection current keyword collection
  * @param {object} newKeywords new keywords object
  * @returns {Promise} resolves if document meta data fetched successfully or rejects otherwise
  */
-const patchDocumentKeywords = async (token, documentId, currentKeywordCollection, newKeywords) => {
+const patchDocumentKeywords = async (
+  token,
+  fbLb,
+  documentId,
+  currentKeywordCollection,
+  newKeywords,
+) => {
   try {
     const newKeywordsMap = {};
     _.forEach(newKeywords, (newKeyword) => {
@@ -298,13 +335,14 @@ const patchDocumentKeywords = async (token, documentId, currentKeywordCollection
       url: `${onbaseDocumentsUrl}/${documentId}/keywords`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       data: currentKeywordCollection,
       withCredentials: true,
     };
 
-    const data = await axios(reqConfig);
-    return data;
+    const res = await axios(reqConfig);
+    return [res.data, getFbLbCookie(res)];
   } catch (err) {
     logger.error(err);
     if (err.response && err.response.status !== 200) {
@@ -320,10 +358,11 @@ const patchDocumentKeywords = async (token, documentId, currentKeywordCollection
  * Get document content
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {string} documentId the unique identifier of a document type
  * @returns {Promise} resolves if document content fetched or rejects otherwise
  */
-const getDocumentContent = async (token, documentId) => {
+const getDocumentContent = async (token, fbLb, documentId) => {
   try {
     const revisionId = 'latest';
     const fileTypeId = 'default';
@@ -333,13 +372,14 @@ const getDocumentContent = async (token, documentId) => {
       url: `${onbaseDocumentsUrl}/${documentId}/revisions/${revisionId}/renditions/${fileTypeId}/content`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       responseType: 'arraybuffer',
       withCredentials: true,
     };
 
-    const data = await axios(reqConfig);
-    return data;
+    const res = await axios(reqConfig);
+    return [res, getFbLbCookie(res)];
   } catch (err) {
     logger.error(err);
     if (err.response && err.response.status === 404) {

@@ -13,10 +13,10 @@ const get = async (req, res) => {
     const onbaseProfile = headers['onbase-profile'];
 
     // Get access token
-    const token = await getAccessToken(onbaseProfile);
+    const [token, fbLb] = await getAccessToken(onbaseProfile);
 
     // Get document metadata
-    const documentMetadata = await getDocumentById(token, documentId);
+    const documentMetadata = await getDocumentById(token, fbLb, documentId);
 
     // Serialize document
     const serializedDocument = serializeDocument(documentMetadata, req);
