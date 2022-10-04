@@ -40,8 +40,8 @@ paths:
                   description: The Id of the document type to store the document into
                   example: '1234'
               required:
-                 - uploadedDocument
-                 - documentTypeId
+                - uploadedDocument
+                - documentTypeId
               additionalProperties: false
       responses:
         '201':
@@ -239,6 +239,10 @@ components:
               type: string
               description: The ID of the document type to store the document into
               example: '1234'
+            createdByUserId:
+              type: string
+              description: The unique identifier of the user that created this document
+              example: '123456'
             storedDate:
               type: string
               format: date-time
