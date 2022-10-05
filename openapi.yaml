@@ -273,10 +273,14 @@ components:
               type: array
               items:
                 properties:
-                  keywordTypeId:
+                  typeId:
                     type: string
                     description: The unique identifier of the keyword type for this keyword value
                     example: '123'
+                  name:
+                    type: string
+                    description: The name of the keyword type
+                    example: DOC - General Info
                   values:
                     type: array
                     description: A List of keyword values that contain various formats of the keyword value
