@@ -116,7 +116,7 @@ paths:
                   type: array
                   items:
                     properties:
-                      keywordTypeId:
+                      typeId:
                         type: string
                         description: The unique identifier of the keyword type for this keyword value
                         example: '123'
@@ -127,7 +127,7 @@ paths:
                           type: string
                           example: '123456789'
                     required:
-                      - keywordTypeId
+                      - typeId
                       - values
                     additionalProperties: false
       responses:
