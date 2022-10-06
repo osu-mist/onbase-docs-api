@@ -18,7 +18,7 @@ import { serializeDocument } from '../../serializers/documents-serializer';
  */
 const post = async (req, res) => {
   try {
-    const { files, headers, body: { documentTypeId } } = req;
+    const { files, headers, body: { documentTypeId, comment } } = req;
     const onbaseProfile = headers['onbase-profile'];
 
     // Upload document information from form data
@@ -26,12 +26,15 @@ const post = async (req, res) => {
     const {
       size,
       buffer,
-      originalname,
       mimetype,
     } = uploadedDocument;
 
-    // File size limit: 25 MB
+    if (mimetype !== 'application/pdf') {
+      return errorBuilder(res, 400, ['uploadedDocument must be a PDF document.']);
+    }
+
     if (size > 25000000) {
+      // File size limit: 25 MB
       return errorBuilder(res, 413);
     }
 
@@ -54,8 +57,7 @@ const post = async (req, res) => {
     [, fbLb] = result;
 
     // Prepare staging area
-    const fileExtension = /[^.]*$/.exec(originalname)[0];
-    result = await initiateStagingArea(token, fbLb, fileExtension, size);
+    result = await initiateStagingArea(token, fbLb, 'pdf', size);
 
     const { id: uploadId, numberOfParts } = result[0];
     [, fbLb] = result;
@@ -78,6 +80,7 @@ const post = async (req, res) => {
       documentTypeId,
       uploadId,
       keywordsGuid,
+      comment,
     );
     const documentId = result[0];
     [, fbLb] = result;

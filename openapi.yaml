@@ -35,10 +35,15 @@ paths:
                 uploadedDocument:
                   type: string
                   format: binary
+                  description: Update document. Must be a PDF.
                 documentTypeId:
                   type: string
                   description: The Id of the document type to store the document into
                   example: '1234'
+                comment:
+                  type: string
+                  description: Comments if the document type is Revisable/Renditionable
+                  enum: ['Revisable', 'Renditionable']
               required:
                 - uploadedDocument
                 - documentTypeId
@@ -145,7 +150,7 @@ paths:
     get:
       summary: Get document content
       tags:
-        - keywords
+        - document-content
       description: Get document content for a rendition of a revision
       operationId: getDocumentContent
       parameters:
