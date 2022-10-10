@@ -199,10 +199,9 @@ const getDefaultKeywordsGuid = async (token, fbLb, documentTypeId) => {
  * @param {string} documentTypeId the unique identifier of a document type
  * @param {string} uploadId file uploaded ID
  * @param {string} keywordsGuid keywords GUID string
- * @param {string} comment document comment
  * @returns {Promise} resolves if document archived successfully or rejects otherwise
  */
-const archiveDocument = async (token, fbLb, documentTypeId, uploadId, keywordsGuid, comment) => {
+const archiveDocument = async (token, fbLb, documentTypeId, uploadId, keywordsGuid) => {
   try {
     const reqConfig = {
       method: 'post',
@@ -218,7 +217,6 @@ const archiveDocument = async (token, fbLb, documentTypeId, uploadId, keywordsGu
           keywordGuid: keywordsGuid,
           items: [],
         },
-        comment,
       },
       withCredentials: true,
     };
