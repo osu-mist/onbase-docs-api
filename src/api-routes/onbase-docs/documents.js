@@ -55,6 +55,7 @@ const get = async (req, res) => {
   const keywordTypes = result[0];
   [, fbLb] = result;
 
+  // Create a document query with provided search constraints
   result = await createQuery(token, fbLb, documentTypeId, keywordTypes);
   console.log(result);
 
