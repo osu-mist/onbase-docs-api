@@ -1,7 +1,10 @@
 import _ from 'lodash';
 
 import { errorBuilder, errorHandler } from 'errors/errors';
+import { parseQuery } from 'utils/parse-query';
 import {
+  getDocumentTypeIdByName,
+  // getDocuments,
   getAccessToken,
   getDefaultKeywordsGuid,
   initiateStagingArea,
@@ -10,6 +13,45 @@ import {
   getDocumentById,
 } from '../../db/http/onbase-dao';
 import { serializeDocument } from '../../serializers/documents-serializer';
+
+/**
+ * Get documents
+ *
+ * @type {RequestHandler}
+ */
+const get = async (req, res) => {
+  const { query, headers } = req;
+  const onbaseProfile = headers['onbase-profile'];
+  const parsedQuery = parseQuery(query);
+
+  if (
+    parsedQuery.keywordTypeNames.length !== parsedQuery.keywordValues.length
+  ) {
+    return errorBuilder(res, 400, [
+      'Numbers of filter[keywordTypeNames] and filter[keywordValues] are not matched.',
+    ]);
+  }
+
+  let result;
+  let fbLb;
+
+  // Get access token
+  result = await getAccessToken(onbaseProfile);
+  const token = result[0];
+  [, fbLb] = result;
+
+  // Convert document type name to document ID
+  result = await getDocumentTypeIdByName(token, fbLb, parsedQuery.documentTypeName);
+  if (result instanceof Error) {
+    return errorBuilder(res, 400, [result.message]);
+  }
+
+  const documentTypeId = result[0];
+  console.log(documentTypeId);
+  [, fbLb] = result;
+
+  return res.status(200).send('Nice');
+};
 
 /**
  * Post document
@@ -94,4 +136,4 @@ const post = async (req, res) => {
   }
 };
 
-export { post };
+export { get, post };

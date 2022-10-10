@@ -20,6 +20,59 @@ security:
       - full
 paths:
   /onbase-docs/documents:
+    get:
+      summary: Get documents
+      tags:
+        - documents
+      description: Get documents
+      operationId: getDocuments
+      parameters:
+        - name: filter[documentTypeName]
+          in: query
+          required: true
+          description: The name of the document type to store the document into
+          example: 'PAR PAR Form'
+          schema:
+            type: string
+        - name: filter[keywordTypeNames]
+          in: query
+          required: false
+          description: >-
+            The keyword Type names in pipe-delimited format. The order must match with
+            filter[keywordValues].
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+          style: pipeDelimited
+          explode: false
+          example: keyword_name_1|keyword_name_2
+        - name: filter[keywordValues]
+          in: query
+          required: false
+          description: >-
+            The keyword values in pipe-delimited format. The order must match with
+            filter[keywordTypeNames].
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+          style: pipeDelimited
+          explode: false
+          example: keyword_value_1|keyword_value_2
+      responses:
+        '200':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResult'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
     post:
       summary: Upload document
       tags:
@@ -38,7 +91,7 @@ paths:
                   description: Update document
                 documentTypeId:
                   type: string
-                  description: The Id of the document type to store the document into
+                  description: The ID of the document type to store the document into
                   example: '1234'
               required:
                 - uploadedDocument
@@ -125,8 +178,12 @@ paths:
                         type: array
                         description: A List of keyword values that contain various formats of the keyword value
                         items:
-                          type: string
-                          example: '123456789'
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                              description: Value of keyword
+                              example: '933012347'
                     required:
                       - typeId
                       - values
@@ -284,10 +341,17 @@ components:
                     example: DOC - General Info
                   values:
                     type: array
-                    description: A List of keyword values that contain various formats of the keyword value
                     items:
-                      type: string
-                      example: '123456789'
+                      type: object
+                      properties:
+                        value:
+                          type: string
+                          description: Value of keyword
+                          example: '933012347'
+                        formattedValue:
+                          type: string
+                          description: Formatted value of keyword
+                          example: '933012347'
     DocumentResult:
       properties:
         links:

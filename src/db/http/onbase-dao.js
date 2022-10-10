@@ -308,10 +308,11 @@ const getDocumentKeywords = async (token, fbLb, documentId) => {
  * Get document keywords
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {Object[]} keywords document keywords
  * @returns {Promise} resolves if document keywords fetched or rejects otherwise
  */
-const getDocumentKeywordTypes = async (token, keywords) => {
+const getDocumentKeywordTypes = async (token, fbLb, keywords) => {
   try {
     const params = new URLSearchParams();
     _.forEach(keywords, ({ typeId }) => {
@@ -323,27 +324,33 @@ const getDocumentKeywordTypes = async (token, keywords) => {
       url: `${onbaseKeywordTypesUrl}`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       params,
-      withCredentials: false,
+      withCredentials: true,
     };
 
     const res = await axios(reqConfig);
-    const keywordTypes = _.reduce(res.data.items, (result, keywordType) => {
-      result[keywordType.id] = { name: keywordType.name };
-      return result;
-    }, {});
+    const keywordTypes = _.reduce(
+      res.data.items,
+      (result, keywordType) => {
+        result[keywordType.id] = { name: keywordType.name };
+        return result;
+      },
+      {},
+    );
 
     _.forEach(keywords, (keyword) => {
       keyword.name = keywordTypes[keyword.typeId].name;
     });
 
-    return keywords;
+    return [keywords, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
       return new Error(err.response.data.detail);
-    } if (err.response && err.response.status !== 200) {
+    }
+    if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
@@ -444,6 +451,103 @@ const getDocumentContent = async (token, fbLb, documentId) => {
   }
 };
 
+/**
+ * Get document type ID
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {Object} documentTypeName query parameters
+ * @returns {Promise} resolves if document type ID fetched or rejects otherwise
+ */
+const getDocumentTypeIdByName = async (token, fbLb, documentTypeName) => {
+  try {
+    const documentTypeReqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentTypesUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      params: { systemName: documentTypeName },
+      withCredentials: true,
+    };
+
+    const documentTypeRes = await axios(documentTypeReqConfig);
+
+    if (documentTypeRes.data.items.length > 1) {
+      const errMessage = 'More than one document types matched.';
+      logger.error(errMessage);
+      return new Error(errMessage);
+    }
+
+    if (documentTypeRes.data.items.length === 0) {
+      const errMessage = 'Please provide a valid document type.';
+      logger.error(errMessage);
+      return new Error(errMessage);
+    }
+
+    return [documentTypeRes.data.items[0].id, getFbLbCookie(documentTypeRes)];
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Get document
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {Object} query query parameters
+ * @returns {Promise} resolves if document fetched or rejects otherwise
+ */
+const getDocuments = async (token, fbLb, query) => {
+  try {
+    // convert keyword type names to keyword type IDs
+    const keywordTypes = _.reduce(_.range(query.keywordTypeNames.length), (result, i) => {
+      result[query.keywordTypeNames[i]] = { value: query.keywordValues[i] };
+      return result;
+    }, {});
+
+    const params = new URLSearchParams();
+    _.forEach(query.keywordTypeNames, (keywordTypeName) => {
+      params.append('systemName', keywordTypeName);
+    });
+
+    const keywordTypesReqConfig = {
+      method: 'get',
+      url: `${onbaseKeywordTypesUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      params,
+      withCredentials: true,
+    };
+
+    const keywordTypesRes = await axios(keywordTypesReqConfig);
+
+    _.forEach(keywordTypesRes.data.items, (keywordType) => {
+      keywordTypes[keywordType.name].id = keywordType.id;
+    });
+
+    return [keywordTypes, getFbLbCookie(keywordTypesRes)];
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
 export {
   getAccessToken,
   initiateStagingArea,
@@ -455,4 +559,6 @@ export {
   getDocumentKeywordTypes,
   patchDocumentKeywords,
   getDocumentContent,
+  getDocumentTypeIdByName,
+  getDocuments,
 };
