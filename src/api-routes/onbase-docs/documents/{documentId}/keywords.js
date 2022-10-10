@@ -3,6 +3,7 @@ import { errorBuilder, errorHandler } from 'errors/errors';
 import {
   getAccessToken,
   getDocumentKeywords,
+  getDocumentKeywordTypes,
   patchDocumentKeywords,
 } from '../../../../db/http/onbase-dao';
 import { serializeKeywords } from '../../../../serializers/keywords-serializer';
@@ -22,13 +23,17 @@ const get = async (req, res) => {
 
     // Get current keyword collection
     const [currentKeywordCollection] = await getDocumentKeywords(token, fbLb, documentId);
+
     if (currentKeywordCollection instanceof Error) {
       return errorBuilder(res, 404, currentKeywordCollection.message);
     }
 
     // Serialize keywords
     currentKeywordCollection.id = documentId;
-    currentKeywordCollection.keywords = currentKeywordCollection.items[0].keywords;
+    currentKeywordCollection.keywords = await getDocumentKeywordTypes(
+      token,
+      currentKeywordCollection.items[0].keywords,
+    );
 
     const serializedKeywords = serializeKeywords(currentKeywordCollection, req);
 

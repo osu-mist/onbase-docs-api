@@ -19,6 +19,7 @@ const {
 const onbaseIdpUrl = `${baseUri}/app/${idpServer}`;
 const onbaseDocumentsUrl = `${baseUri}/app/${apiServer}/onbase/core/documents`;
 const onbaseDocumentTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/document-types`;
+const onbaseKeywordTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/keyword-types`;
 
 /**
  * Get FB_LB cookie token from response headers
@@ -239,7 +240,7 @@ const archiveDocument = async (token, fbLb, documentTypeId, uploadId, keywordsGu
  *
  * @param {string} token access token
  * @param {string} fbLb FB_LB cookie value
- * @param {string} documentId the unique identifier of a document.
+ * @param {string} documentId the unique identifier of a document
  * @returns {Promise} resolves if document meta data fetched successfully or rejects otherwise
  */
 const getDocumentById = async (token, fbLb, documentId) => {
@@ -289,6 +290,55 @@ const getDocumentKeywords = async (token, fbLb, documentId) => {
 
     const res = await axios(reqConfig);
     return [res.data, getFbLbCookie(res)];
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      logger.error(err.response.data.errors);
+      return new Error(err.response.data.detail);
+    } if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Get document keywords
+ *
+ * @param {string} token access token
+ * @param {Object[]} keywords document keywords
+ * @returns {Promise} resolves if document keywords fetched or rejects otherwise
+ */
+const getDocumentKeywordTypes = async (token, keywords) => {
+  try {
+    const params = new URLSearchParams();
+    _.forEach(keywords, ({ typeId }) => {
+      params.append('id', typeId);
+    });
+
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseKeywordTypesUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params,
+      withCredentials: false,
+    };
+
+    const res = await axios(reqConfig);
+    const keywordTypes = _.reduce(res.data.items, (result, keywordType) => {
+      result[keywordType.id] = { name: keywordType.name };
+      return result;
+    }, {});
+
+    _.forEach(keywords, (keyword) => {
+      keyword.name = keywordTypes[keyword.typeId].name;
+    });
+
+    return keywords;
   } catch (err) {
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
@@ -402,6 +452,7 @@ export {
   archiveDocument,
   getDocumentById,
   getDocumentKeywords,
+  getDocumentKeywordTypes,
   patchDocumentKeywords,
   getDocumentContent,
 };
