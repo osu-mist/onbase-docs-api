@@ -461,7 +461,7 @@ const getDocumentContent = async (token, fbLb, documentId) => {
  */
 const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
   try {
-    const documentTypeReqConfig = {
+    const reqConfig = {
       method: 'get',
       url: `${onbaseDocumentTypesUrl}`,
       headers: {
@@ -472,21 +472,21 @@ const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
       withCredentials: true,
     };
 
-    const documentTypeRes = await axios(documentTypeReqConfig);
+    const res = await axios(reqConfig);
 
-    if (documentTypeRes.data.items.length > 1) {
+    if (res.data.items.length > 1) {
       const errMessage = 'More than one document types matched.';
       logger.error(errMessage);
       return new Error(errMessage);
     }
 
-    if (documentTypeRes.data.items.length === 0) {
+    if (res.data.items.length === 0) {
       const errMessage = 'Please provide a valid document type.';
       logger.error(errMessage);
       return new Error(errMessage);
     }
 
-    return [documentTypeRes.data.items[0].id, getFbLbCookie(documentTypeRes)];
+    return [res.data.items[0].id, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
@@ -522,7 +522,7 @@ const getKeywordTypesByNames = async (token, fbLb, query) => {
       params.append('systemName', keywordTypeName);
     });
 
-    const keywordTypesReqConfig = {
+    const reqConfig = {
       method: 'get',
       url: `${onbaseKeywordTypesUrl}`,
       headers: {
@@ -533,13 +533,13 @@ const getKeywordTypesByNames = async (token, fbLb, query) => {
       withCredentials: true,
     };
 
-    const keywordTypesRes = await axios(keywordTypesReqConfig);
+    const res = await axios(reqConfig);
 
-    _.forEach(keywordTypesRes.data.items, (keywordType) => {
+    _.forEach(res.data.items, (keywordType) => {
       keywordTypes[keywordType.name].id = keywordType.id;
     });
 
-    return [keywordTypes, getFbLbCookie(keywordTypesRes)];
+    return [keywordTypes, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
@@ -552,44 +552,57 @@ const getKeywordTypesByNames = async (token, fbLb, query) => {
 };
 
 /**
- * Get document
+ * Generate query
  *
  * @param {string} token access token
  * @param {string} fbLb FB_LB cookie value
- * @param {Object} query query parameters
+ * @param {string} documentTypeId document type ID
+ * @param {Object} keywordTypes keyword types
  * @returns {Promise} resolves if document fetched or rejects otherwise
  */
-const getDocuments = async (token, fbLb, query) => {
+const createQuery = async (token, fbLb, documentTypeId, keywordTypes) => {
   try {
-    // convert keyword type names to keyword type IDs
-    const keywordTypes = _.reduce(_.range(query.keywordTypeNames.length), (result, i) => {
-      result[query.keywordTypeNames[i]] = { value: query.keywordValues[i] };
-      return result;
-    }, {});
+    const queryKeywordCollection = _.reduce(
+      keywordTypes,
+      (result, keywordType) => {
+        result.push({
+          typeId: keywordType.id,
+          value: keywordType.value,
+          operator: 'Equal',
+          relation: 'And',
+        });
+        return result;
+      },
+      [],
+    );
 
-    const params = new URLSearchParams();
-    _.forEach(query.keywordTypeNames, (keywordTypeName) => {
-      params.append('systemName', keywordTypeName);
-    });
-
-    const keywordTypesReqConfig = {
-      method: 'get',
-      url: `${onbaseKeywordTypesUrl}`,
+    const reqConfig = {
+      method: 'post',
+      url: `${onbaseDocumentsUrl}/queries`,
       headers: {
         Authorization: `Bearer ${token}`,
         Cookie: `FB_LB=${fbLb}`,
       },
-      params,
+      data: {
+        queryType: [
+          {
+            type: 'DocumentType',
+            ids: [documentTypeId],
+          },
+        ],
+        queryKeywordCollection,
+        userDisplayColumns: [
+          {
+            displayColumnType: 'DocumentName',
+          },
+        ],
+      },
       withCredentials: true,
     };
 
-    const keywordTypesRes = await axios(keywordTypesReqConfig);
+    const res = await axios(reqConfig);
 
-    _.forEach(keywordTypesRes.data.items, (keywordType) => {
-      keywordTypes[keywordType.name].id = keywordType.id;
-    });
-
-    return [keywordTypes, getFbLbCookie(keywordTypesRes)];
+    return [res.data.id, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
@@ -614,5 +627,5 @@ export {
   getDocumentContent,
   getDocumentTypeByName,
   getKeywordTypesByNames,
-  getDocuments,
+  createQuery,
 };

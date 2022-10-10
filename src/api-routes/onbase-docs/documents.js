@@ -5,7 +5,7 @@ import { parseQuery } from 'utils/parse-query';
 import {
   getDocumentTypeByName,
   getKeywordTypesByNames,
-  // getDocuments,
+  createQuery,
   getAccessToken,
   getDefaultKeywordsGuid,
   initiateStagingArea,
@@ -48,14 +48,15 @@ const get = async (req, res) => {
   }
 
   const documentTypeId = result[0];
-  console.log(documentTypeId);
   [, fbLb] = result;
 
   // Convert keyword type names to keyword IDs
   result = await getKeywordTypesByNames(token, fbLb, parsedQuery);
   const keywordTypes = result[0];
-  console.log(keywordTypes);
   [, fbLb] = result;
+
+  result = await createQuery(token, fbLb, documentTypeId, keywordTypes);
+  console.log(result);
 
   return res.status(200).send('Nice');
 };
