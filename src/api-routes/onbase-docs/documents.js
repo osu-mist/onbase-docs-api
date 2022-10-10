@@ -3,7 +3,8 @@ import _ from 'lodash';
 import { errorBuilder, errorHandler } from 'errors/errors';
 import { parseQuery } from 'utils/parse-query';
 import {
-  getDocumentTypeIdByName,
+  getDocumentTypeByName,
+  getKeywordTypesByNames,
   // getDocuments,
   getAccessToken,
   getDefaultKeywordsGuid,
@@ -41,13 +42,19 @@ const get = async (req, res) => {
   [, fbLb] = result;
 
   // Convert document type name to document ID
-  result = await getDocumentTypeIdByName(token, fbLb, parsedQuery.documentTypeName);
+  result = await getDocumentTypeByName(token, fbLb, parsedQuery.documentTypeName);
   if (result instanceof Error) {
     return errorBuilder(res, 400, [result.message]);
   }
 
   const documentTypeId = result[0];
   console.log(documentTypeId);
+  [, fbLb] = result;
+
+  // Convert keyword type names to keyword IDs
+  result = await getKeywordTypesByNames(token, fbLb, parsedQuery);
+  const keywordTypes = result[0];
+  console.log(keywordTypes);
   [, fbLb] = result;
 
   return res.status(200).send('Nice');

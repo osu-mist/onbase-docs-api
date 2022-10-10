@@ -456,10 +456,10 @@ const getDocumentContent = async (token, fbLb, documentId) => {
  *
  * @param {string} token access token
  * @param {string} fbLb FB_LB cookie value
- * @param {Object} documentTypeName query parameters
+ * @param {Object} documentTypeName document type name
  * @returns {Promise} resolves if document type ID fetched or rejects otherwise
  */
-const getDocumentTypeIdByName = async (token, fbLb, documentTypeName) => {
+const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
   try {
     const documentTypeReqConfig = {
       method: 'get',
@@ -487,6 +487,59 @@ const getDocumentTypeIdByName = async (token, fbLb, documentTypeName) => {
     }
 
     return [documentTypeRes.data.items[0].id, getFbLbCookie(documentTypeRes)];
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Get keyword type IDs
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {Object} query query parameters
+ * @returns {Promise} resolves if keyword type IDs fetched or rejects otherwise
+ */
+const getKeywordTypesByNames = async (token, fbLb, query) => {
+  try {
+    const keywordTypes = _.reduce(
+      _.range(query.keywordTypeNames.length),
+      (result, i) => {
+        result[query.keywordTypeNames[i]] = { value: query.keywordValues[i] };
+        return result;
+      },
+      {},
+    );
+
+    const params = new URLSearchParams();
+    _.forEach(query.keywordTypeNames, (keywordTypeName) => {
+      params.append('systemName', keywordTypeName);
+    });
+
+    const keywordTypesReqConfig = {
+      method: 'get',
+      url: `${onbaseKeywordTypesUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      params,
+      withCredentials: true,
+    };
+
+    const keywordTypesRes = await axios(keywordTypesReqConfig);
+
+    _.forEach(keywordTypesRes.data.items, (keywordType) => {
+      keywordTypes[keywordType.name].id = keywordType.id;
+    });
+
+    return [keywordTypes, getFbLbCookie(keywordTypesRes)];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
@@ -559,6 +612,7 @@ export {
   getDocumentKeywordTypes,
   patchDocumentKeywords,
   getDocumentContent,
-  getDocumentTypeIdByName,
+  getDocumentTypeByName,
+  getKeywordTypesByNames,
   getDocuments,
 };
