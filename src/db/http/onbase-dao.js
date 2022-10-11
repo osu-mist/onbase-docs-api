@@ -499,40 +499,6 @@ const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
 };
 
 /**
- * Get documents metadata
- *
- * @param {string} token access token
- * @param {string} fbLb FB_LB cookie value
- * @param {string[]} documentIds the unique identifiers of documents
- * @returns {Promise} resolves if documents meta data fetched successfully or rejects otherwise
- */
-const getDocumentByIds = async (token, fbLb, documentIds) => {
-  try {
-    console.log(documentIds);
-    const reqConfig = {
-      method: 'get',
-      url: `${onbaseDocumentsUrl}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Cookie: `FB_LB=${fbLb}`,
-      },
-      withCredentials: true,
-    };
-
-    const { data } = await axios(reqConfig);
-    return data;
-  } catch (err) {
-    if (err.response && err.response.status !== 200) {
-      logger.error(err.response.data.errors);
-      throw new Error(err.response.data.detail);
-    } else {
-      logger.error(err);
-      throw new Error(err);
-    }
-  }
-};
-
-/**
  * Get keyword type IDs
  *
  * @param {string} token access token
@@ -711,6 +677,46 @@ const getQueryResults = async (token, fbLb, queryId) => {
   }
 };
 
+/**
+ * Get documents metadata
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {string[]} documentIds the unique identifiers of documents
+ * @returns {Promise} resolves if documents meta data fetched successfully or rejects otherwise
+ */
+const getDocumentsByIds = async (token, fbLb, documentIds) => {
+  try {
+    const params = new URLSearchParams();
+    _.forEach(documentIds, (documentId) => {
+      params.append('id', documentId);
+    });
+
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentsUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      params,
+      withCredentials: true,
+    };
+
+    const { data } = await axios(reqConfig);
+
+    return data;
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
 export {
   getAccessToken,
   initiateStagingArea,
@@ -718,7 +724,7 @@ export {
   getDefaultKeywordsGuid,
   archiveDocument,
   getDocumentById,
-  getDocumentByIds,
+  getDocumentsByIds,
   getDocumentKeywords,
   getDocumentKeywordTypes,
   patchDocumentKeywords,

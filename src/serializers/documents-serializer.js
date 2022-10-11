@@ -40,4 +40,34 @@ const serializeDocument = (documentMetadata, { method, query }) => {
     serializerOptions(serializerArgs),
   ).serialize(documentMetadata);
 };
-export { serializeDocument };
+
+/**
+ * Serialize document resource to JSON API
+ *
+ * @param {object} documentsMetadata document metadata
+ * @param {boolean} query query parameters
+ * @returns {object} Serialized documentResource object
+ */
+const serializeDocuments = (documentsMetadata, query) => {
+  const topLevelSelfLink = paramsLink(documentResourceUrl, query);
+
+  _.forEach(documentsMetadata, (documentMetadata) => {
+    documentMetadata.documentTypeId = documentMetadata.typeId;
+  });
+
+  const serializerArgs = {
+    identifierField: 'id',
+    resourceKeys: documentResourceKeys,
+    resourcePath: documentResourcePath,
+    topLevelSelfLink,
+    query,
+    enableDataLinks: true,
+  };
+
+  return new JsonApiSerializer(
+    documentResourceType,
+    serializerOptions(serializerArgs),
+  ).serialize(documentsMetadata);
+};
+
+export { serializeDocument, serializeDocuments };

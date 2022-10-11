@@ -7,6 +7,7 @@ import {
   getKeywordTypesByNames,
   createQuery,
   getQueryResults,
+  getDocumentsByIds,
   getAccessToken,
   getDefaultKeywordsGuid,
   initiateStagingArea,
@@ -14,7 +15,10 @@ import {
   archiveDocument,
   getDocumentById,
 } from '../../db/http/onbase-dao';
-import { serializeDocument } from '../../serializers/documents-serializer';
+import {
+  serializeDocument,
+  serializeDocuments,
+} from '../../serializers/documents-serializer';
 
 /**
  * Get documents
@@ -80,10 +84,22 @@ const get = async (req, res) => {
   const queryId = result[0];
   [, fbLb] = result;
 
+  // Get document IDs from the query
   result = await getQueryResults(token, fbLb, queryId);
-  console.log(result[0].data.items);
 
-  return res.status(200).send('Nice');
+  const documentIds = _.reduce(result[0].data.items, (ids, item) => {
+    ids.push(item.id);
+    return ids;
+  }, []);
+  [, fbLb] = result;
+
+  // Get documents meta data by document IDs
+  result = await getDocumentsByIds(token, fbLb, documentIds);
+
+  // Serialize documents
+  const serializedDocuments = serializeDocuments(result.items, query);
+
+  return res.status(200).send(serializedDocuments);
 };
 
 /**
