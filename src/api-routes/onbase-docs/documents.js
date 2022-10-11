@@ -6,6 +6,7 @@ import {
   getDocumentTypeByName,
   getKeywordTypesByNames,
   createQuery,
+  getQueryResults,
   getAccessToken,
   getDefaultKeywordsGuid,
   initiateStagingArea,
@@ -24,12 +25,19 @@ const get = async (req, res) => {
   const { query, headers } = req;
   const onbaseProfile = headers['onbase-profile'];
   const parsedQuery = parseQuery(query);
+  const { startDate, endDate } = parsedQuery;
 
   if (
     parsedQuery.keywordTypeNames.length !== parsedQuery.keywordValues.length
   ) {
     return errorBuilder(res, 400, [
       'Numbers of filter[keywordTypeNames] and filter[keywordValues] are not matched.',
+    ]);
+  }
+
+  if (new Date(startDate) > new Date(endDate)) {
+    return errorBuilder(res, 400, [
+      'The document end date is prior to the document start date.',
     ]);
   }
 
@@ -56,8 +64,19 @@ const get = async (req, res) => {
   [, fbLb] = result;
 
   // Create a document query with provided search constraints
-  result = await createQuery(token, fbLb, documentTypeId, keywordTypes);
-  console.log(result);
+  result = await createQuery(
+    token,
+    fbLb,
+    documentTypeId,
+    keywordTypes,
+    startDate,
+    endDate,
+  );
+  const queryId = result[0];
+  [, fbLb] = result;
+
+  result = await getQueryResults(token, fbLb, queryId);
+  console.log(result[0].data.items);
 
   return res.status(200).send('Nice');
 };

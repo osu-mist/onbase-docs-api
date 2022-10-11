@@ -24,7 +24,7 @@ paths:
       summary: Get documents
       tags:
         - documents
-      description: Get documents
+      description: Get documents. At most 100 results will be retrieved.
       operationId: getDocuments
       parameters:
         - name: filter[documentTypeName]
@@ -62,6 +62,22 @@ paths:
           style: pipeDelimited
           explode: false
           example: keyword_value_1|keyword_value_2
+        - name: filter[startDate]
+          in: query
+          required: false
+          description: The starting date of the date range
+          schema:
+            type: string
+            format: date
+            example: '2020-01-01'
+        - name: filter[endDate]
+          in: query
+          required: false
+          description: The starting date of the date range
+          schema:
+            type: string
+            format: date
+            example: '2021-12-31'
       responses:
         '200':
           description: Document uploaded
