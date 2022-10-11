@@ -656,6 +656,17 @@ const createQuery = async (token, fbLb, documentTypeId, keywordTypes, startDate,
     return [res.data.id, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
+      if (
+        err.response.data.detail
+        && (err.response.data.detail.startsWith('An Error occurred while parsing a keyword value')
+          || err.response.data.detail.startsWith('Some of the provided input data is invalid')
+        )
+      ) {
+        logger.warn(err.response.data.detail);
+        err.message = 'Unable to generate searching query. Please ensure providing valid inputs.';
+        return new Error(err);
+      }
+
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {

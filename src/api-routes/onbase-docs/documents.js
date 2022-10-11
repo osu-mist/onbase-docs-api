@@ -72,6 +72,11 @@ const get = async (req, res) => {
     startDate,
     endDate,
   );
+
+  if (result instanceof Error) {
+    return errorBuilder(res, 400, [result.message]);
+  }
+
   const queryId = result[0];
   [, fbLb] = result;
 
