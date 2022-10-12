@@ -30,10 +30,12 @@ const get = async (req, res) => {
 
     // Serialize keywords
     currentKeywordCollection.id = documentId;
-    currentKeywordCollection.keywords = await getDocumentKeywordTypes(
+    const [keywords] = await getDocumentKeywordTypes(
       token,
+      fbLb,
       currentKeywordCollection.items[0].keywords,
     );
+    currentKeywordCollection.keywords = keywords;
 
     const serializedKeywords = serializeKeywords(currentKeywordCollection, req);
 

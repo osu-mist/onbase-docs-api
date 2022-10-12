@@ -308,10 +308,11 @@ const getDocumentKeywords = async (token, fbLb, documentId) => {
  * Get document keywords
  *
  * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
  * @param {Object[]} keywords document keywords
  * @returns {Promise} resolves if document keywords fetched or rejects otherwise
  */
-const getDocumentKeywordTypes = async (token, keywords) => {
+const getDocumentKeywordTypes = async (token, fbLb, keywords) => {
   try {
     const params = new URLSearchParams();
     _.forEach(keywords, ({ typeId }) => {
@@ -323,27 +324,33 @@ const getDocumentKeywordTypes = async (token, keywords) => {
       url: `${onbaseKeywordTypesUrl}`,
       headers: {
         Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
       },
       params,
-      withCredentials: false,
+      withCredentials: true,
     };
 
     const res = await axios(reqConfig);
-    const keywordTypes = _.reduce(res.data.items, (result, keywordType) => {
-      result[keywordType.id] = { name: keywordType.name };
-      return result;
-    }, {});
+    const keywordTypes = _.reduce(
+      res.data.items,
+      (result, keywordType) => {
+        result[keywordType.id] = { name: keywordType.name };
+        return result;
+      },
+      {},
+    );
 
     _.forEach(keywords, (keyword) => {
       keyword.name = keywordTypes[keyword.typeId].name;
     });
 
-    return keywords;
+    return [keywords, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
       return new Error(err.response.data.detail);
-    } if (err.response && err.response.status !== 200) {
+    }
+    if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
@@ -444,6 +451,272 @@ const getDocumentContent = async (token, fbLb, documentId) => {
   }
 };
 
+/**
+ * Get document type ID
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {Object} documentTypeName document type name
+ * @returns {Promise} resolves if document type ID fetched or rejects otherwise
+ */
+const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
+  try {
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentTypesUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      params: { systemName: documentTypeName },
+      withCredentials: true,
+    };
+
+    const res = await axios(reqConfig);
+
+    if (res.data.items.length > 1) {
+      const errMessage = 'More than one document types matched.';
+      logger.error(errMessage);
+      return new Error(errMessage);
+    }
+
+    if (res.data.items.length === 0) {
+      const errMessage = 'Please provide a valid document type.';
+      logger.error(errMessage);
+      return new Error(errMessage);
+    }
+
+    return [res.data.items[0].id, getFbLbCookie(res)];
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Get keyword type IDs
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {Object} query query parameters
+ * @returns {Promise} resolves if keyword type IDs fetched or rejects otherwise
+ */
+const getKeywordTypesByNames = async (token, fbLb, query) => {
+  try {
+    const keywordTypes = _.reduce(
+      _.range(query.keywordTypeNames.length),
+      (result, i) => {
+        result[query.keywordTypeNames[i]] = { value: query.keywordValues[i] };
+        return result;
+      },
+      {},
+    );
+
+    const params = new URLSearchParams();
+    _.forEach(query.keywordTypeNames, (keywordTypeName) => {
+      params.append('systemName', keywordTypeName);
+    });
+
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseKeywordTypesUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      params,
+      withCredentials: true,
+    };
+
+    const res = await axios(reqConfig);
+
+    _.forEach(res.data.items, (keywordType) => {
+      keywordTypes[keywordType.name].id = keywordType.id;
+    });
+
+    return [keywordTypes, getFbLbCookie(res)];
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Generate query
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {string} documentTypeId document type ID
+ * @param {Object} keywordTypes keyword types
+ * @param {string} startDate document start date
+ * @param {string} endDate document end date
+ * @returns {Promise} resolves if document fetched or rejects otherwise
+ */
+const createQuery = async (token, fbLb, documentTypeId, keywordTypes, startDate, endDate) => {
+  try {
+    // Generate query keyword collection
+    const queryKeywordCollection = _.reduce(
+      keywordTypes,
+      (result, keywordType) => {
+        result.push({
+          typeId: keywordType.id,
+          value: keywordType.value,
+          operator: 'Equal',
+          relation: 'And',
+        });
+        return result;
+      },
+      [],
+    );
+
+    // Generate query document date range
+    const documentDateRange = {};
+    if (startDate) {
+      documentDateRange.start = startDate;
+    }
+    if (endDate) {
+      documentDateRange.end = endDate;
+    }
+
+    const reqConfig = {
+      method: 'post',
+      url: `${onbaseDocumentsUrl}/queries`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      data: {
+        queryType: [
+          {
+            type: 'DocumentType',
+            ids: [documentTypeId],
+          },
+        ],
+        queryKeywordCollection,
+        userDisplayColumns: [
+          {
+            displayColumnType: 'DocumentName',
+          },
+          {
+            displayColumnType: 'DocumentDate',
+          },
+        ],
+        documentDateRangeCollection: [documentDateRange],
+        maxResults: 100,
+      },
+      withCredentials: true,
+    };
+
+    const res = await axios(reqConfig);
+
+    return [res.data.id, getFbLbCookie(res)];
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      const errorDetail = err.response.data.detail;
+      if (
+        errorDetail
+        && (errorDetail.startsWith('An Error occurred while parsing a keyword value')
+          || errorDetail.startsWith('Some of the provided input data is invalid')
+        )
+      ) {
+        logger.warn(errorDetail);
+        err.message = 'Unable to generate searching query. Please ensure providing valid inputs.';
+        return new Error(err);
+      }
+
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Get query results
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {string} queryId query ID
+ * @returns {Promise} resolves if document fetched or rejects otherwise
+ */
+const getQueryResults = async (token, fbLb, queryId) => {
+  try {
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentsUrl}/queries/${queryId}/results`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      withCredentials: true,
+    };
+
+    const res = await axios(reqConfig);
+
+    return [res, getFbLbCookie(res)];
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Get documents metadata
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {string[]} documentIds the unique identifiers of documents
+ * @returns {Promise} resolves if documents meta data fetched successfully or rejects otherwise
+ */
+const getDocumentsByIds = async (token, fbLb, documentIds) => {
+  try {
+    const params = new URLSearchParams();
+    _.forEach(documentIds, (documentId) => {
+      params.append('id', documentId);
+    });
+
+    const reqConfig = {
+      method: 'get',
+      url: `${onbaseDocumentsUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      params,
+      withCredentials: true,
+    };
+
+    const { data } = await axios(reqConfig);
+
+    return data;
+  } catch (err) {
+    if (err.response && err.response.status !== 200) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
 export {
   getAccessToken,
   initiateStagingArea,
@@ -451,8 +724,13 @@ export {
   getDefaultKeywordsGuid,
   archiveDocument,
   getDocumentById,
+  getDocumentsByIds,
   getDocumentKeywords,
   getDocumentKeywordTypes,
   patchDocumentKeywords,
   getDocumentContent,
+  getDocumentTypeByName,
+  getKeywordTypesByNames,
+  createQuery,
+  getQueryResults,
 };
