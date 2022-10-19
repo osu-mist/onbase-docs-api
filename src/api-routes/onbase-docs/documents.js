@@ -12,6 +12,7 @@ import {
   getDefaultKeywordsGuid,
   initiateStagingArea,
   uploadFile,
+  postIndexingModifiers,
   archiveDocument,
   getDocumentById,
 } from '../../db/http/onbase-dao';
@@ -109,7 +110,11 @@ const get = async (req, res) => {
  */
 const post = async (req, res) => {
   try {
-    const { files, headers, body: { documentTypeId } } = req;
+    const {
+      files,
+      headers,
+      body: { documentTypeId, indexKey },
+    } = req;
     const onbaseProfile = headers['onbase-profile'];
 
     // Upload document information from form data
@@ -135,13 +140,24 @@ const post = async (req, res) => {
     const token = result[0];
     [, fbLb] = result;
 
-    // Get keywords GUID
+    // Get default keywords GUID
     result = await getDefaultKeywordsGuid(token, fbLb, documentTypeId);
     if (result instanceof Error) {
       return errorBuilder(res, 400, [result.message]);
     }
 
-    const keywordsGuid = result[0];
+    const defaultKeywordsGuid = result[0];
+    [, fbLb] = result;
+
+    // Perform autofill of keywords data by index key
+    result = await postIndexingModifiers(
+      token,
+      fbLb,
+      documentTypeId,
+      defaultKeywordsGuid,
+      indexKey,
+    );
+    const keywordCollection = result[0];
     [, fbLb] = result;
 
     // Prepare staging area
@@ -155,7 +171,14 @@ const post = async (req, res) => {
     // eslint-disable-next-line no-restricted-syntax
     for (const numberOfPart of _.range(numberOfParts)) {
       // eslint-disable-next-line no-await-in-loop
-      result = await uploadFile(token, fbLb, uploadId, numberOfPart + 1, mimetype, buffer);
+      result = await uploadFile(
+        token,
+        fbLb,
+        uploadId,
+        numberOfPart + 1,
+        mimetype,
+        buffer,
+      );
       if (result instanceof Error) {
         return errorBuilder(res, 413, [result.message]);
       }
@@ -168,7 +191,7 @@ const post = async (req, res) => {
       fbLb,
       documentTypeId,
       uploadId,
-      keywordsGuid,
+      keywordCollection,
     );
     const documentId = result[0];
     [, fbLb] = result;

@@ -109,9 +109,14 @@ paths:
                   type: string
                   description: The ID of the document type to store the document into
                   example: '1234'
+                indexKey:
+                  type: string
+                  description: The index key for performing autofill document keywords
+                  example: '1234'
               required:
                 - uploadedDocument
                 - documentTypeId
+                - indexKey
               additionalProperties: false
       responses:
         '201':
