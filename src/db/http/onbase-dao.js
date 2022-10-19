@@ -14,6 +14,7 @@ const {
   clientId,
   clientSecret,
   onbaseProfiles,
+  documentIndexKeyTypeId,
 } = config.get('dataSources.http');
 
 const onbaseIdpUrl = `${baseUri}/app/${idpServer}`;
@@ -221,7 +222,7 @@ const postIndexingModifiers = async (
         objectType: 'ArchivalAutoFillExpansion',
         documentTypeId,
         autoFillKeywordSetPrimaryKeyword: {
-          typeId: '222', // Doc - Index Key
+          typeId: documentIndexKeyTypeId,
           value: indexKey,
         },
         keywordCollection: {
@@ -230,7 +231,7 @@ const postIndexingModifiers = async (
             {
               keywords: [
                 {
-                  typeId: '222',
+                  typeId: documentIndexKeyTypeId,
                   values: [
                     {
                       value: indexKey,
