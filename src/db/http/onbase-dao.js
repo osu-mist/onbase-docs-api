@@ -17,6 +17,7 @@ const {
 } = config.get('dataSources.http');
 
 const onbaseIdpUrl = `${baseUri}/app/${idpServer}`;
+const onbaseIndexingModifiersUrl = `${baseUri}/app/${apiServer}/onbase/core/indexing-modifiers`;
 const onbaseDocumentsUrl = `${baseUri}/app/${apiServer}/onbase/core/documents`;
 const onbaseDocumentTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/document-types`;
 const onbaseKeywordTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/keyword-types`;
@@ -196,12 +197,86 @@ const getDefaultKeywordsGuid = async (token, fbLb, documentTypeId) => {
  *
  * @param {string} token access token
  * @param {string} fbLb FB_LB cookie value
- * @param {string} documentTypeId the unique identifier of a document type
- * @param {string} uploadId file uploaded ID
- * @param {string} keywordsGuid keywords GUID string
+ * @param {string} documentTypeId document type ID
+ * @param {string} defaultKeywordsGuid default keywords GUID
+ * @param {string} indexKey index key
  * @returns {Promise} resolves if document archived successfully or rejects otherwise
  */
-const archiveDocument = async (token, fbLb, documentTypeId, uploadId, keywordsGuid) => {
+const postIndexingModifiers = async (
+  token,
+  fbLb,
+  documentTypeId,
+  defaultKeywordsGuid,
+  indexKey,
+) => {
+  try {
+    const reqConfig = {
+      method: 'post',
+      url: `${onbaseIndexingModifiersUrl}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      data: {
+        objectType: 'ArchivalAutoFillExpansion',
+        documentTypeId,
+        autoFillKeywordSetPrimaryKeyword: {
+          typeId: '222', // Doc - Index Key
+          value: indexKey,
+        },
+        keywordCollection: {
+          keywordGuid: defaultKeywordsGuid,
+          items: [
+            {
+              keywords: [
+                {
+                  typeId: '222',
+                  values: [
+                    {
+                      value: indexKey,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+      withCredentials: true,
+    };
+
+    const res = await axios(reqConfig);
+    const { keywordCollection } = res.data;
+
+    return [keywordCollection, getFbLbCookie(res)];
+  } catch (err) {
+    if (err.response && err.response.status !== 201) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
+ * Finishes the document upload by archiving the document into the given document type
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {string} documentTypeId the unique identifier of a document type
+ * @param {string} uploadId file uploaded ID
+ * @param {string} keywordCollection keyword collection
+ * @returns {Promise} resolves if document archived successfully or rejects otherwise
+ */
+const archiveDocument = async (
+  token,
+  fbLb,
+  documentTypeId,
+  uploadId,
+  keywordCollection,
+) => {
   try {
     const reqConfig = {
       method: 'post',
@@ -213,16 +288,15 @@ const archiveDocument = async (token, fbLb, documentTypeId, uploadId, keywordsGu
       data: {
         documentTypeId,
         uploads: [{ id: uploadId }],
-        keywordCollection: {
-          keywordGuid: keywordsGuid,
-          items: [],
-        },
+        keywordCollection,
       },
       withCredentials: true,
     };
 
     const res = await axios(reqConfig);
-    const { data: { id: documentId } } = res;
+    const {
+      data: { id: documentId },
+    } = res;
     return [documentId, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 201) {
@@ -722,6 +796,7 @@ export {
   initiateStagingArea,
   uploadFile,
   getDefaultKeywordsGuid,
+  postIndexingModifiers,
   archiveDocument,
   getDocumentById,
   getDocumentsByIds,
