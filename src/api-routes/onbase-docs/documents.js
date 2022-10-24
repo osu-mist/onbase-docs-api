@@ -157,6 +157,11 @@ const post = async (req, res) => {
       defaultKeywordsGuid,
       indexKey,
     );
+
+    if (result instanceof Error) {
+      return errorBuilder(res, 400, [result.message]);
+    }
+
     const keywordCollection = result[0];
     [, fbLb] = result;
 
