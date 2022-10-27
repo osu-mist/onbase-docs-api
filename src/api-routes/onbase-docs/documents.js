@@ -12,7 +12,7 @@ import {
   getDefaultKeywordsGuid,
   initiateStagingArea,
   uploadFile,
-  postIndexingModifiers,
+  // postIndexingModifiers,
   archiveDocument,
   getDocumentById,
 } from '../../db/http/onbase-dao';
@@ -113,7 +113,7 @@ const post = async (req, res) => {
     const {
       files,
       headers,
-      body: { documentTypeId, indexKey },
+      body: { documentTypeId },
     } = req;
     const onbaseProfile = headers['onbase-profile'];
 
@@ -148,22 +148,26 @@ const post = async (req, res) => {
 
     const defaultKeywordsGuid = result[0];
     [, fbLb] = result;
+    const keywordCollection = {
+      keywordGuid: defaultKeywordsGuid,
+      items: [],
+    };
 
     // Perform autofill of keywords data by index key
-    result = await postIndexingModifiers(
-      token,
-      fbLb,
-      documentTypeId,
-      defaultKeywordsGuid,
-      indexKey,
-    );
+    // result = await postIndexingModifiers(
+    //   token,
+    //   fbLb,
+    //   documentTypeId,
+    //   defaultKeywordsGuid,
+    //   indexKey,
+    // );
 
-    if (result instanceof Error) {
-      return errorBuilder(res, 400, [result.message]);
-    }
+    // if (result instanceof Error) {
+    //   return errorBuilder(res, 400, [result.message]);
+    // }
 
-    const keywordCollection = result[0];
-    [, fbLb] = result;
+    // const keywordCollection = result[0];
+    // [, fbLb] = result;
 
     // Prepare staging area
     const fileExtension = /[^.]*$/.exec(originalname)[0];
