@@ -2,6 +2,7 @@ import axios from 'axios';
 import config from 'config';
 import FormData from 'form-data';
 import _ from 'lodash';
+import moment from 'moment';
 import setCookie from 'set-cookie-parser';
 
 import { logger } from 'utils/logger';
@@ -23,6 +24,9 @@ const onbaseDocumentsUrl = `${baseUri}/app/${apiServer}/onbase/core/documents`;
 const onbaseDocumentTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/document-types`;
 const onbaseKeywordTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/keyword-types`;
 
+let accessToken;
+let expireTimeStamp;
+
 /**
  * Get FB_LB cookie token from response headers
  *
@@ -43,28 +47,36 @@ const getFbLbCookie = (res) => {
  */
 const getAccessToken = async (onbaseProfile) => {
   try {
-    const { username, password } = onbaseProfiles[onbaseProfile];
+    if (
+      accessToken === undefined
+      || (expireTimeStamp !== undefined && moment().isAfter(expireTimeStamp))
+    ) {
+      const { username, password } = onbaseProfiles[onbaseProfile];
 
-    const formData = new FormData();
-    formData.append('grant_type', 'password');
-    formData.append('scope', 'evolution');
-    formData.append('tenant', tenant);
-    formData.append('client_id', clientId);
-    formData.append('client_secret', clientSecret);
-    formData.append('username', username);
-    formData.append('password', password);
+      const formData = new FormData();
+      formData.append('grant_type', 'password');
+      formData.append('scope', 'evolution');
+      formData.append('tenant', tenant);
+      formData.append('client_id', clientId);
+      formData.append('client_secret', clientSecret);
+      formData.append('username', username);
+      formData.append('password', password);
 
-    const reqConfig = {
-      method: 'post',
-      url: `${onbaseIdpUrl}/connect/token`,
-      headers: formData.getHeaders(),
-      data: formData,
-      withCredentials: true,
-    };
+      const reqConfig = {
+        method: 'post',
+        url: `${onbaseIdpUrl}/connect/token`,
+        headers: formData.getHeaders(),
+        data: formData,
+        withCredentials: true,
+      };
 
-    const res = await axios(reqConfig);
-    const { data: { access_token: accessToken } } = res;
-    return [accessToken, getFbLbCookie(res)];
+      const res = await axios(reqConfig);
+      accessToken = res.data.access_token;
+      // access token expire in an hour. Set up an expire date when request a new token.
+      expireTimeStamp = moment().add(55, 'minutes');
+      return [accessToken, getFbLbCookie(res)];
+    }
+    return [accessToken];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.error);

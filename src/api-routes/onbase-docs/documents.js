@@ -32,9 +32,7 @@ const get = async (req, res) => {
   const parsedQuery = parseQuery(query);
   const { startDate, endDate } = parsedQuery;
 
-  if (
-    parsedQuery.keywordTypeNames.length !== parsedQuery.keywordValues.length
-  ) {
+  if (parsedQuery.keywordTypeNames.length !== parsedQuery.keywordValues.length) {
     return errorBuilder(res, 400, [
       'Numbers of filter[keywordTypeNames] and filter[keywordValues] are not matched.',
     ]);
