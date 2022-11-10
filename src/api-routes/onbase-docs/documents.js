@@ -109,7 +109,9 @@ const get = async (req, res) => {
   [, fbLb] = result;
 
   // Get documents meta data by document IDs
-  result = await getDocumentsByIds(token, fbLb, documentIds);
+  result = !_.isEmpty(documentIds)
+    ? await getDocumentsByIds(token, fbLb, documentIds)
+    : { items: [] };
 
   // Serialize documents
   const serializedDocuments = serializeDocuments(result.items, query);
