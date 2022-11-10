@@ -601,7 +601,7 @@ const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
 const getKeywordTypesByNames = async (token, fbLb, query) => {
   try {
     const keywordTypes = _.reduce(
-      _.range(query.keywordTypeNames.length),
+      _.range(query.keywordTypeNames ? query.keywordTypeNames.length : 0),
       (result, i) => {
         result[query.keywordTypeNames[i]] = { value: query.keywordValues[i] };
         return result;
@@ -628,7 +628,9 @@ const getKeywordTypesByNames = async (token, fbLb, query) => {
     const res = await axios(reqConfig);
 
     _.forEach(res.data.items, (keywordType) => {
-      keywordTypes[keywordType.name].id = keywordType.id;
+      if (keywordTypes[keywordType.name]) {
+        keywordTypes[keywordType.name].id = keywordType.id;
+      }
     });
 
     return [keywordTypes, getFbLbCookie(res)];
