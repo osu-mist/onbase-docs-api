@@ -30,11 +30,27 @@ const get = async (req, res) => {
   const { query, headers } = req;
   const onbaseProfile = headers['onbase-profile'];
   const parsedQuery = parseQuery(query);
-  const { startDate, endDate } = parsedQuery;
+  const {
+    documentTypeName,
+    startDate,
+    endDate,
+    keywordTypeNames,
+    keywordValues,
+  } = parsedQuery;
 
-  if (parsedQuery.keywordTypeNames.length !== parsedQuery.keywordValues.length) {
+  if (
+    keywordTypeNames
+    && keywordValues
+    && keywordTypeNames.length !== keywordValues.length
+  ) {
     return errorBuilder(res, 400, [
       'Numbers of filter[keywordTypeNames] and filter[keywordValues] are not matched.',
+    ]);
+  }
+
+  if (!startDate && !endDate) {
+    return errorBuilder(res, 400, [
+      'Either the start date or the end date must be a specific value.',
     ]);
   }
 
@@ -53,7 +69,7 @@ const get = async (req, res) => {
   [, fbLb] = result;
 
   // Convert document type name to document ID
-  result = await getDocumentTypeByName(token, fbLb, parsedQuery.documentTypeName);
+  result = await getDocumentTypeByName(token, fbLb, documentTypeName);
   if (result instanceof Error) {
     return errorBuilder(res, 400, [result.message]);
   }
