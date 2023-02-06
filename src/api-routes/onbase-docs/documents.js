@@ -9,12 +9,12 @@ import {
   getQueryResults,
   getDocumentsByIds,
   getAccessToken,
-  getDefaultKeywordsGuid,
+  getDefaultKeywords,
   initiateStagingArea,
   uploadFile,
-  postIndexingModifiers,
   archiveDocument,
-  getDocumentById,
+  getDocumentKeywords,
+  reIndexDocumentById,
 } from '../../db/http/onbase-dao';
 import {
   serializeDocument,
@@ -156,30 +156,30 @@ const post = async (req, res) => {
     const token = result[0];
     [, fbLb] = result;
 
-    // Get default keywords GUID
-    result = await getDefaultKeywordsGuid(token, fbLb, documentTypeId);
+    // Get default keywords
+    result = await getDefaultKeywords(token, fbLb);
     if (result instanceof Error) {
       return errorBuilder(res, 400, [result.message]);
     }
 
-    const defaultKeywordsGuid = result[0];
+    let keywordCollection = result[0];
     [, fbLb] = result;
 
     // Perform autofill of keywords data by index key
-    result = await postIndexingModifiers(
-      token,
-      fbLb,
-      documentTypeId,
-      defaultKeywordsGuid,
-      indexKey,
-    );
+    // result = await postIndexingModifiers(
+    //   token,
+    //   fbLb,
+    //   documentTypeId,
+    //   defaultKeywordsGuid,
+    //   indexKey,
+    // );
 
-    if (result instanceof Error) {
-      return errorBuilder(res, 400, [result.message]);
-    }
+    // if (result instanceof Error) {
+    //   return errorBuilder(res, 400, [result.message]);
+    // }
 
-    const keywordCollection = result[0];
-    [, fbLb] = result;
+    // const keywordCollection = result[0];
+    // [, fbLb] = result;
 
     // Prepare staging area
     const fileExtension = /[^.]*$/.exec(originalname)[0];
@@ -210,18 +210,36 @@ const post = async (req, res) => {
     result = await archiveDocument(
       token,
       fbLb,
-      documentTypeId,
       uploadId,
       keywordCollection,
     );
     const documentId = result[0];
     [, fbLb] = result;
 
-    // Get document metadata
-    const documentMetadata = await getDocumentById(token, fbLb, documentId);
+    [keywordCollection] = await getDocumentKeywords(
+      token,
+      fbLb,
+      documentId,
+    );
+
+    // Re-index document
+    await reIndexDocumentById(
+      token,
+      fbLb,
+      documentId,
+      documentTypeId,
+      keywordCollection,
+      indexKey,
+    );
 
     // Serialize document
-    const serializedDocument = serializeDocument(documentMetadata, req);
+    const serializedDocument = serializeDocument(
+      {
+        id: documentId,
+        typeId: documentTypeId,
+      },
+      req,
+    );
 
     return res.status(201).send(serializedDocument);
   } catch (err) {

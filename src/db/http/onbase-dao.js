@@ -15,6 +15,7 @@ const {
   clientId,
   clientSecret,
   onbaseProfiles,
+  apiStagingDocumentTypeId,
   documentIndexKeyTypeId,
 } = config.get('dataSources.http');
 
@@ -169,18 +170,17 @@ const uploadFile = async (token, fbLb, uploadId, filePart, mimeType, fileBuffer)
 };
 
 /**
- * Get default keywords GUID string to ensure integrity of restricted keyword values
+ * Get default keywords
  *
  * @param {string} token access token
  * @param {string} fbLb FB_LB cookie value
- * @param {string} documentTypeId the unique identifier of a document type
- * @returns {Promise} resolves if keywords GUID fetched or rejects otherwise
+ * @returns {Promise} resolves if default keywords fetched or rejects otherwise
  */
-const getDefaultKeywordsGuid = async (token, fbLb, documentTypeId) => {
+const getDefaultKeywords = async (token, fbLb) => {
   try {
     const reqConfig = {
       method: 'get',
-      url: `${onbaseDocumentTypesUrl}/${documentTypeId}/default-keywords`,
+      url: `${onbaseDocumentTypesUrl}/${apiStagingDocumentTypeId}/default-keywords`,
       headers: {
         Authorization: `Bearer ${token}`,
         Cookie: `FB_LB=${fbLb}`,
@@ -189,8 +189,7 @@ const getDefaultKeywordsGuid = async (token, fbLb, documentTypeId) => {
     };
 
     const res = await axios(reqConfig);
-    const { keywordGuid } = res.data;
-    return [keywordGuid, getFbLbCookie(res)];
+    return [res.data, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status === 404) {
       const error = err.response.data.detail || err.response.data.errors;
@@ -279,6 +278,69 @@ const postIndexingModifiers = async (
 };
 
 /**
+ * Prepares the staging area to start the upload. Returns a reference to the file being uploaded
+ *
+ * @param {string} token access token
+ * @param {string} fbLb FB_LB cookie value
+ * @param {string} documentId document ID
+ * @param {string} targetDocumentTypeId target document type ID
+ * @param {object} keywordCollection keyword collection
+ * @param {string} indexKey index key
+ * @returns {Promise} resolves if staging area initialized or rejects otherwise
+ */
+const reIndexDocumentById = async (
+  token,
+  fbLb,
+  documentId,
+  targetDocumentTypeId,
+  keywordCollection,
+  indexKey,
+) => {
+  try {
+    keywordCollection.items = [
+      {
+        keywords: [
+          {
+            typeId: documentIndexKeyTypeId,
+            values: [
+              {
+                value: indexKey,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const reqConfig = {
+      method: 'put',
+      url: `${onbaseDocumentsUrl}/${documentId}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `FB_LB=${fbLb}`,
+      },
+      data: {
+        targetDocumentTypeId,
+        targetFileTypeId: '16', // TODO: only PDF is allowed right now
+        keywordCollection,
+      },
+      withCredentials: true,
+    };
+
+    const res = await axios(reqConfig);
+    return [res, getFbLbCookie(res)];
+  } catch (err) {
+    if (err.response && err.response.status !== 201) {
+      logger.error(err.response.data.errors);
+      throw new Error(err.response.data.detail);
+    } else {
+      logger.error(err);
+      throw new Error(err);
+    }
+  }
+};
+
+/**
  * Finishes the document upload by archiving the document into the given document type
  *
  * @param {string} token access token
@@ -291,7 +353,6 @@ const postIndexingModifiers = async (
 const archiveDocument = async (
   token,
   fbLb,
-  documentTypeId,
   uploadId,
   keywordCollection,
 ) => {
@@ -304,7 +365,7 @@ const archiveDocument = async (
         Cookie: `FB_LB=${fbLb}`,
       },
       data: {
-        documentTypeId,
+        documentTypeId: apiStagingDocumentTypeId,
         uploads: [{ id: uploadId }],
         keywordCollection,
       },
@@ -815,9 +876,10 @@ export {
   getAccessToken,
   initiateStagingArea,
   uploadFile,
-  getDefaultKeywordsGuid,
+  getDefaultKeywords,
   postIndexingModifiers,
   archiveDocument,
+  reIndexDocumentById,
   getDocumentById,
   getDocumentsByIds,
   getDocumentKeywords,
