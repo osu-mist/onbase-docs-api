@@ -165,22 +165,6 @@ const post = async (req, res) => {
     let keywordCollection = result[0];
     [, fbLb] = result;
 
-    // Perform autofill of keywords data by index key
-    // result = await postIndexingModifiers(
-    //   token,
-    //   fbLb,
-    //   documentTypeId,
-    //   defaultKeywordsGuid,
-    //   indexKey,
-    // );
-
-    // if (result instanceof Error) {
-    //   return errorBuilder(res, 400, [result.message]);
-    // }
-
-    // const keywordCollection = result[0];
-    // [, fbLb] = result;
-
     // Prepare staging area
     const fileExtension = /[^.]*$/.exec(originalname)[0];
     result = await initiateStagingArea(token, fbLb, fileExtension, size);
