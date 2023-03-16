@@ -1,4 +1,4 @@
-import { errorHandler } from 'errors/errors';
+import { errorBuilder, errorHandler } from 'errors/errors';
 import { getAccessToken, getDocumentById } from '../../../db/http/onbase-dao';
 import { serializeDocument } from '../../../serializers/documents-serializer';
 
@@ -17,6 +17,9 @@ const get = async (req, res) => {
 
     // Get document metadata
     const documentMetadata = await getDocumentById(token, fbLb, documentId);
+    if (documentMetadata instanceof Error) {
+      return errorBuilder(res, 404, documentMetadata.message);
+    }
 
     // Serialize document
     const serializedDocument = serializeDocument(documentMetadata, req);
