@@ -350,6 +350,10 @@ const getDocumentById = async (token, fbLb, documentId) => {
     const { data } = await axios(reqConfig);
     return data;
   } catch (err) {
+    if (err.response && err.response.status === 404) {
+      logger.error(err.response.data.errors);
+      return new Error(err.response.data.detail);
+    }
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
@@ -386,7 +390,8 @@ const getDocumentKeywords = async (token, fbLb, documentId) => {
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
       return new Error(err.response.data.detail);
-    } if (err.response && err.response.status !== 200) {
+    }
+    if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     } else {
