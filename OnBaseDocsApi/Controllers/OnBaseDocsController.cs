@@ -230,15 +230,15 @@ namespace OnBaseDocsApi.Controllers
             }
             catch (JsonReaderException ex)
             {
-                errors.Add(BadRequestError($"JSON parse error. {ex.Message}"));
+                errors.Add(BadRequestError($"JSON parse error. {ex}"));
             }
             catch (IOException ex) when (ex.Message.Contains("MIME multipart message is not complete"))
             {
-                errors.Add(BadRequestError(ex.Message));
+                errors.Add(BadRequestError(ex.ToString()));
             }
             catch (Exception ex)
             {
-                return InternalErrorResult(ex.Message);
+                return InternalErrorResult(ex.ToString());
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExtension))
@@ -532,11 +532,11 @@ namespace OnBaseDocsApi.Controllers
             catch (InvalidOperationException ex)
                 when (ex.Message.Contains("User does not have rights"))
             {
-                return AccessDeniedResult(ex.Message);
+                return AccessDeniedResult(ex.ToString());
             }
             catch (Exception ex)
             {
-                return InternalErrorResult(ex.Message);
+                return InternalErrorResult(ex.ToString());
             }
         }
 
