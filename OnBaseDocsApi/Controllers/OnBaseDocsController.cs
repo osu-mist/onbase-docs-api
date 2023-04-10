@@ -537,11 +537,11 @@ namespace OnBaseDocsApi.Controllers
             catch (InvalidOperationException ex)
                 when (ex.Message.Contains("User does not have rights"))
             {
-                return AccessDeniedResult(ToMessage(ex));
+                return AccessDeniedResult(ex.Message);
             }
             catch (Exception ex)
             {
-                return InternalErrorResult(ToMessage(ex));
+                return InternalErrorResult(ex.Message);
             }
         }
 

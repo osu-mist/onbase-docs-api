@@ -10,25 +10,6 @@ namespace OnBaseDocsApi.Controllers
 {
     public abstract class BaseApiController : ApiController
     {
-        protected string ToMessage(Exception ex)
-        {
-            if (IsRequestVerbose())
-                return ex.ToString();
-            else
-                return ex.Message;
-        }
-
-        protected bool IsRequestVerbose()
-        {
-            var queryString = Request.GetQueryNameValuePairs()
-                .LastOrDefault(x => x.Key == "verbose").Value;
-
-            if (Boolean.TryParse(queryString, out var isVerbose))
-                return isVerbose;
-            else
-                return false;
-        }
-
         protected Error BadRequestError(string detail)
         {
             return new Error
