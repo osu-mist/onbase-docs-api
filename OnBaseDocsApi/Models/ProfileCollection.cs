@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using log4net;
 using Hyland.Unity;
 
 namespace OnBaseDocsApi.Models
@@ -12,6 +14,9 @@ namespace OnBaseDocsApi.Models
         readonly object Lock = new object();
         readonly ConcurrentDictionary<string, Profile> Profiles =
             new ConcurrentDictionary<string, Profile>();
+
+        static readonly ILog log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ProfileCollection(Dictionary<string, Credential> credentials)
         {
@@ -44,17 +49,23 @@ namespace OnBaseDocsApi.Models
             {
                 app = SessionIdLogIn(config, profile);
             }
-            catch (SessionNotFoundException)
+            catch (SessionNotFoundException ex)
             {
                 // The session id was not found, try login with credentials.
                 app = null;
+                log.Error($"Session not found. {ex}");
             }
 
             // If we don't have a valid OnBase application do a credential login.
             if (app == null)
             {
                 if (!CredentialLogIn(config, profile))
-                    throw new Exception($"OnBase login failed for profile '{profile.Name}'.");
+                {
+                    var msg = $"OnBase login failed for profile '{profile.Name}'.";
+                    log.Error(msg);
+                    throw new Exception(msg);
+                }
+
                 /*
                  * The profile is no longer valid since there was
                  * a credential login so lookup the profile again.
@@ -64,7 +75,11 @@ namespace OnBaseDocsApi.Models
             }
 
             if (app == null)
-                throw new Exception($"Could not get an OnBase application for profile {profile.Name}.");
+            {
+                var msg = $"Could not get an OnBase application for profile {profile.Name}.";
+                log.Error(msg);
+                throw new Exception(msg);
+            }
             return app;
         }
 
@@ -73,6 +88,7 @@ namespace OnBaseDocsApi.Models
             if (profile.Application == null)
             {
                 // Log in should have happened at startup or last refresh.
+                log.Error($"No profile application exists: {profile.Name}.");
                 return null;
             }
 
@@ -132,11 +148,10 @@ namespace OnBaseDocsApi.Models
                 try
                 {
                     CredentialLogIn(config, Profiles[profileName]);
-                    // TODO: Log the error.
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // TODO: Log the error.
+                    log.Error($"Credential login failed. {ex}");
                 }
             })).ToArray());
         }
@@ -154,9 +169,9 @@ namespace OnBaseDocsApi.Models
                         profile.Value.Application = null;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // TODO: Log the error.
+                    log.Error($"Logout failed. {ex}");
                     profile.Value.Application = null;
                 }
             })).ToArray());
