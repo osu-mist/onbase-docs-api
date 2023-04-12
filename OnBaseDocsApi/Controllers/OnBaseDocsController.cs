@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Web.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,6 +14,7 @@ using Hyland.Types;
 using Hyland.Unity;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using log4net;
 using OnBaseDocsApi.Attributes;
 using OnBaseDocsApi.Models;
 
@@ -35,6 +37,9 @@ namespace OnBaseDocsApi.Controllers
 
         static readonly byte[] HashSalt;
         static readonly string HashSecret;
+
+        static readonly ILog log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         static OnBaseDocsController()
         {
@@ -230,15 +235,18 @@ namespace OnBaseDocsApi.Controllers
             }
             catch (JsonReaderException ex)
             {
-                errors.Add(BadRequestError($"JSON parse error. {ex}"));
+                log.Error($"JSON parse error. {ex}");
+                errors.Add(BadRequestError($"JSON parse error. {ex.Message}"));
             }
             catch (IOException ex) when (ex.Message.Contains("MIME multipart message is not complete"))
             {
-                errors.Add(BadRequestError(ex.ToString()));
+                log.Error($"MIME multipart message is not complete. {ex}");
+                errors.Add(BadRequestError(ex.Message));
             }
             catch (Exception ex)
             {
-                return InternalErrorResult(ex.ToString());
+                log.Error($"{ex}");
+                return InternalErrorResult(ex.Message);
             }
 
             if ((docStream == null) || string.IsNullOrWhiteSpace(docExtension))
@@ -537,10 +545,12 @@ namespace OnBaseDocsApi.Controllers
             catch (InvalidOperationException ex)
                 when (ex.Message.Contains("User does not have rights"))
             {
+                log.Error($"Access Denied. {ex}");
                 return AccessDeniedResult(ex.Message);
             }
             catch (Exception ex)
             {
+                log.Error($"{ex}");
                 return InternalErrorResult(ex.Message);
             }
         }
@@ -724,8 +734,9 @@ namespace OnBaseDocsApi.Controllers
             {
                 return DecryptString(cipher, secret);
             }
-            catch
+            catch (Exception ex)
             {
+                log.Error($"TryDecryptString failed: {ex}");
                 return null;
             }
         }
