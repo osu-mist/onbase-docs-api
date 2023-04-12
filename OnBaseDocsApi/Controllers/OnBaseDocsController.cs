@@ -471,6 +471,11 @@ namespace OnBaseDocsApi.Controllers
             if (pageData == null)
                 errors.Add(BadRequestError($"Unable to create page data for '{attr.FileExtension}'."));
 
+            // We need to check that the docType and fileType are not null. CreateStoreNewDocumentProperties
+            // throws an exception if either is null and we lose the bad request checks.
+            if ((docType == null) || (fileType == null))
+                return BadRequestResult(errors);
+
             var props = app.Core.Storage.CreateStoreNewDocumentProperties(docType, fileType);
             if (props == null)
                 return BadRequestResult($"Unable to create document properties for '{attr.DocumentType}' and '{attr.FileType}'.");
