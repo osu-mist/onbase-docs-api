@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -109,6 +110,10 @@ namespace OnBaseDocsApi.Models
                 profile.Credential.Password,
                 config.DataSource
             );
+
+            // We have to set the TranslationSettings to handle Linux not set the default culture.
+            props.TranslationSettings = props.CreateTranslationSettings(new CultureInfo("en-US"));
+
             var app = Application.Connect(props);
             if (app == null)
                 return false;
