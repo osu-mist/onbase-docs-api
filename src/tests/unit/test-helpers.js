@@ -38,8 +38,7 @@ const createDaoProxy = (daoPath, dbReturn) => proxyquire(daoPath, {
  *
  * @returns {object} config stub
  */
-const createConfigStub = (path) =>
-{
+const createConfigStub = () => {
   const dataSources = {
     http: {
       baseUri: 'fake',
@@ -51,14 +50,13 @@ const createConfigStub = (path) =>
       onbaseProfiles: {
         testprofile: {
           username: 'fake',
-          password: 'fake'
-        }
+          password: 'fake',
+        },
       },
-      documentIndexKeyTypeId: 'fake'
-    }
+      documentIndexKeyTypeId: 'fake',
+    },
   };
-  
-  return sinon.stub(config, 'get').returns(eval(path));
+  return sinon.stub(config, 'get').returns(dataSources.http);
 };
 
 /**

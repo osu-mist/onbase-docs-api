@@ -1,9 +1,9 @@
-import axios from 'axios';
+import 'axios';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
-import proxyquire from 'proxyquire'
-import config from 'config';
+import proxyquire from 'proxyquire';
+import 'config';
 import setCookie from 'set-cookie-parser';
 import { createConfigStub } from './test-helpers';
 
@@ -16,13 +16,15 @@ describe('Test emails-dao', () => {
     name: 'TestDocType',
     typeId: '924680',
   };
-  const fakeData = { data: {
-    access_token: 'fake token',
-    keywordGuid: 'fake guid',
-    keywordCollection: 'fake keyword collection',
-    id: 'fake id',
-    items: [ docType1 ]
-  } };
+  const fakeData = {
+    data: {
+      access_token: 'fake token',
+      keywordGuid: 'fake guid',
+      keywordCollection: 'fake keyword collection',
+      id: 'fake id',
+      items: [docType1],
+    },
+  };
 
   const keyword1 = {
     name: 'Keyword1',
@@ -42,39 +44,42 @@ describe('Test emails-dao', () => {
     id: '9123456',
     name: 'KeywordType2',
   };
-  const fakeKeywordsTypesData = { data: {
-    access_token: 'fake token',
-    keywordGuid: 'fake guid',
-    keywordCollection: 'fake keyword collection',
-    id: 'fake id',
-    items: [ keywordType1, keywordType2 ]
-  } };
+  const fakeKeywordsTypesData = {
+    data: {
+      access_token: 'fake token',
+      keywordGuid: 'fake guid',
+      keywordCollection: 'fake keyword collection',
+      id: 'fake id',
+      items: [keywordType1, keywordType2],
+    },
+  };
 
   let stubAxios;
   let onbaseDao;
   let stubAxios2;
   let onbaseDao2;
-  let setCookieStub;
 
   beforeEach(() => {
-    createConfigStub('dataSources.http');
+    createConfigStub();
     stubAxios = sinon.stub().callsFake(
-      () => { return fakeData });
+      () => fakeData,
+    );
     onbaseDao = proxyquire('db/http/onbase-dao', {
-      'axios': stubAxios,
+      axios: stubAxios,
     });
     stubAxios2 = sinon.stub().callsFake(
-      () => { return fakeKeywordsTypesData });
+      () => fakeKeywordsTypesData,
+    );
     onbaseDao2 = proxyquire('db/http/onbase-dao', {
-      'axios': stubAxios2,
+      axios: stubAxios2,
     });
-    setCookieStub = sinon.stub(setCookie, 'parse').returns([{
-        name: 'FB_LB',
-        value: 'fake cookie',
-        path: '/',
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none'
+    sinon.stub(setCookie, 'parse').returns([{
+      name: 'FB_LB',
+      value: 'fake cookie',
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
     }]);
   });
   afterEach(() => sinon.restore());
@@ -82,21 +87,21 @@ describe('Test emails-dao', () => {
   const testResultWithCookie = (result, data, stub) => {
     result.should
       .eventually.be.fulfilled
-      .and.deep.equals([ data, 'fake cookie' ])
+      .and.deep.equals([data, 'fake cookie'])
       .and.to.have.length(2);
     sinon.assert.calledOnce(stub);
   };
   const testResultCookieOnly = (result, stub) => {
     result.should
       .eventually.be.fulfilled
-      .and.deep.equals([ 'fake cookie' ])
+      .and.deep.equals(['fake cookie'])
       .and.to.have.length(1);
     sinon.assert.calledOnce(stub);
   };
   const testResultData = (result, stub) => {
     result.should
       .eventually.be.fulfilled
-      .and.deep.equals( fakeData.data );
+      .and.deep.equals(fakeData.data);
     sinon.assert.calledOnce(stub);
   };
   const testResultError = (result, msg, stub) => {
@@ -110,110 +115,129 @@ describe('Test emails-dao', () => {
     () => testResultWithCookie(
       onbaseDao.getAccessToken('testprofile'),
       'fake token',
-      stubAxios));
+      stubAxios,
+    ));
   it('initiateStagingArea for valid profile should result',
     () => testResultWithCookie(
       onbaseDao.initiateStagingArea('fake token', 'fake fbLb', 'PDF', 1024),
       fakeData.data,
-      stubAxios));
+      stubAxios,
+    ));
   it('uploadFile should return a valid result',
     () => testResultCookieOnly(
       onbaseDao.uploadFile('fake token', 'fake fbLb',
         'fake', 'fake', 'fake', 'fake'),
-      stubAxios));
+      stubAxios,
+    ));
   it('getDefaultKeywordsGuid should return a valid result',
     () => testResultWithCookie(
       onbaseDao.getDefaultKeywordsGuid('fake token', 'fake fbLb', 'fake'),
       'fake guid',
-      stubAxios));
+      stubAxios,
+    ));
   it('postIndexingModifiers should return a valid result',
     () => testResultWithCookie(
       onbaseDao.postIndexingModifiers('fake token', 'fake fbLb',
         'fake', 'fake', 'fake'),
-        'fake keyword collection',
-        stubAxios));
+      'fake keyword collection',
+      stubAxios,
+    ));
   it('archiveDocument should return a valid result',
     () => testResultWithCookie(
       onbaseDao.archiveDocument('fake token', 'fake fbLb',
         'fake', 'dummy id', 'fake keyword collection'),
-        'fake id',
-        stubAxios));
+      'fake id',
+      stubAxios,
+    ));
   it('getDocumentById should return a valid result',
     () => testResultData(
       onbaseDao.getDocumentById('fake token', 'fake fbLb', 'dummy id'),
-      stubAxios));
+      stubAxios,
+    ));
   it('getDocumentKeywords should return a valid result',
     () => testResultWithCookie(
       onbaseDao.getDocumentKeywords('fake token', 'fake fbLb',
         'fake', 'dummy id', 'fake keyword collection'),
-        fakeData.data,
-        stubAxios));
+      fakeData.data,
+      stubAxios,
+    ));
   it('getDocumentKeywordTypes should return a valid result',
     () => testResultWithCookie(
       onbaseDao2.getDocumentKeywordTypes('fake token', 'fake fbLb',
-        [ keyword1, keyword2 ]),
-        [ keyword1, keyword2 ],
-        stubAxios2));
+        [keyword1, keyword2]),
+      [keyword1, keyword2],
+      stubAxios2,
+    ));
   it('patchDocumentKeywords should return a valid result',
     () => testResultWithCookie(
       onbaseDao.patchDocumentKeywords('fake token', 'fake fbLb',
         'fake',
-        { items: [ [keyword1, keyword2] ] },
+        { items: [[keyword1, keyword2]] },
         [keyword1, keyword2]),
-        fakeData.data,
-        stubAxios));
+      fakeData.data,
+      stubAxios,
+    ));
   it('getDocumentContent should return a valid result',
     () => testResultWithCookie(
       onbaseDao.getDocumentContent('fake token', 'fake fbLb', 'dummy id'),
-        fakeData,
-        stubAxios));
+      fakeData,
+      stubAxios,
+    ));
   it('getDocumentTypeByName should return a valid result',
     () => testResultWithCookie(
       onbaseDao.getDocumentTypeByName('fake token', 'fake fbLb', docType1.id),
       docType1.id,
-      stubAxios));
+      stubAxios,
+    ));
   it('getDocumentTypeByName more than one document type should fail',
     () => {
-      fakeData.data.items = [ docType1, docType1 ];  
+      fakeData.data.items = [docType1, docType1];
 
       testResultError(
         onbaseDao.getDocumentTypeByName(
-          'fake token', 'fake fbLb', docType1.id),
+          'fake token', 'fake fbLb', docType1.id,
+        ),
         'More than one document types matched.',
-        stubAxios);      
+        stubAxios,
+      );
     });
   it('getDocumentTypeByName no document type should fail',
-  () => {
-    fakeData.data.items = [  ];  
+    () => {
+      fakeData.data.items = [];
 
-    testResultError(
-      onbaseDao.getDocumentTypeByName(
-        'fake token', 'fake fbLb', docType1.id),
-      'Please provide a valid document type.',
-      stubAxios);      
-  });
+      testResultError(
+        onbaseDao.getDocumentTypeByName(
+          'fake token', 'fake fbLb', docType1.id,
+        ),
+        'Please provide a valid document type.',
+        stubAxios,
+      );
+    });
   it('getKeywordTypesByNames should return a valid result',
     () => testResultWithCookie(
       onbaseDao2.getKeywordTypesByNames('fake token', 'fake fbLb',
         {
-          keywordTypeNames: [ keywordType2.name ],
-          keywordValues: [ '0' ],
+          keywordTypeNames: [keywordType2.name],
+          keywordValues: ['0'],
         }),
-        { KeywordType2: { value: '0', id: keywordType2.id } },
-        stubAxios2));
+      { KeywordType2: { value: '0', id: keywordType2.id } },
+      stubAxios2,
+    ));
   it('createQuery should return a valid result',
     () => testResultWithCookie(
       onbaseDao.createQuery('fake token', 'fake fbLb', 'fake 1', 'fake 1', 'fake 1', 'fake 1'),
       'fake id',
-      stubAxios));
+      stubAxios,
+    ));
   it('getQueryResults should return a valid result',
     () => testResultWithCookie(
       onbaseDao.getQueryResults('fake token', 'fake fbLb', 'fake id'),
       fakeData,
-      stubAxios));
+      stubAxios,
+    ));
   it('getDocumentsByIds should return a valid result',
     () => testResultData(
       onbaseDao.getDocumentsByIds('fake token', 'fake fbLb', 'fake id'),
-      stubAxios));
-
+      stubAxios,
+    ));
 });
