@@ -38,8 +38,28 @@ const createDaoProxy = (daoPath, dbReturn) => proxyquire(daoPath, {
  *
  * @returns {object} config stub
  */
-const createConfigStub = () => sinon.stub(config, 'get')
-  .returns({ protocol: 'protocol', hostname: 'hostname' });
+const createConfigStub = (path) =>
+{
+  const dataSources = {
+    http: {
+      baseUri: 'fake',
+      apiServer: 'fake',
+      idpServer: 'fake',
+      tenant: 'fake',
+      clientId: 'fake',
+      clientSecret: 'fake',
+      onbaseProfiles: {
+        testprofile: {
+          username: 'fake',
+          password: 'fake'
+        }
+      },
+      documentIndexKeyTypeId: 'fake'
+    }
+  };
+  
+  return sinon.stub(config, 'get').returns(eval(path));
+};
 
 /**
  * Handles stubbing for dao unit tests
