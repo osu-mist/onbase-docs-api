@@ -24,8 +24,12 @@ const onbaseDocumentsUrl = `${baseUri}/app/${apiServer}/onbase/core/documents`;
 const onbaseDocumentTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/document-types`;
 const onbaseKeywordTypesUrl = `${baseUri}/app/${apiServer}/onbase/core/keyword-types`;
 
-let accessToken;
-let expireTimeStamp;
+const tokenTable = {};
+_.forEach(
+  _.keys(onbaseProfiles), (onbaseProfile) => {
+    tokenTable[onbaseProfile] = { accessToken: undefined, expireTimeStamp: undefined };
+  },
+);
 
 /**
  * Get FB_LB cookie token from response headers
@@ -48,8 +52,11 @@ const getFbLbCookie = (res) => {
 const getAccessToken = async (onbaseProfile) => {
   try {
     if (
-      accessToken === undefined
-      || (expireTimeStamp !== undefined && moment().isAfter(expireTimeStamp))
+      tokenTable[onbaseProfile].accessToken === undefined
+      || (
+        tokenTable[onbaseProfile].expireTimeStamp !== undefined
+        && moment().isAfter(tokenTable[onbaseProfile].expireTimeStamp)
+      )
     ) {
       const { username, password } = onbaseProfiles[onbaseProfile];
 
@@ -71,12 +78,12 @@ const getAccessToken = async (onbaseProfile) => {
       };
 
       const res = await axios(reqConfig);
-      accessToken = res.data.access_token;
+      tokenTable[onbaseProfile].accessToken = res.data.access_token;
       // access token expire in an hour. Set up an expire date when request a new token.
-      expireTimeStamp = moment().add(55, 'minutes');
-      return [accessToken, getFbLbCookie(res)];
+      tokenTable[onbaseProfile].expireTimeStamp = moment().add(55, 'minutes');
+      return [tokenTable[onbaseProfile].accessToken, getFbLbCookie(res)];
     }
-    return [accessToken];
+    return [tokenTable[onbaseProfile].accessToken];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.error);
