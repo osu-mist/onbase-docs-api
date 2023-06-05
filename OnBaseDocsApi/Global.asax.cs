@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Timers;
 using System.Web;
@@ -46,6 +47,10 @@ namespace OnBaseDocsApi
                 c.Username = ReplaceVar(regex, c.Username);
                 c.Password = ReplaceVar(regex, c.Password);
             }
+
+            // Disable SSL certificate validation.
+            ServicePointManager.ServerCertificateValidationCallback
+                += (sender, certificate, chain, sslPolicyErrors) => true;
 
             // Load profiles
             Profiles = new ProfileCollection(Config.Profiles);
