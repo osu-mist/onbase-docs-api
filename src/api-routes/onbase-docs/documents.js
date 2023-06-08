@@ -142,14 +142,8 @@ const post = async (req, res) => {
       mimetype,
     } = uploadedDocument;
 
-    // File size limit: 25 MB
-    if (size > 25000000) {
-      return errorBuilder(res, 413);
-    }
-
     let result;
-    // the load balancer cookie (FB_LB) is updated after every request
-    let fbLb;
+    let fbLb; // the load balancer cookie (FB_LB) is updated after every request
 
     // Get access token
     result = await getAccessToken(onbaseProfile);
@@ -185,12 +179,20 @@ const post = async (req, res) => {
     const fileExtension = /[^.]*$/.exec(originalname)[0];
     result = await initiateStagingArea(token, fbLb, fileExtension, size);
 
-    const { id: uploadId, numberOfParts } = result[0];
+    const { id: uploadId, numberOfParts, filePartSize } = result[0];
     [, fbLb] = result;
 
     // Upload file in order
+    let chunkStart;
+    let chunkEnd;
+
     // eslint-disable-next-line no-restricted-syntax
     for (const numberOfPart of _.range(numberOfParts)) {
+      chunkStart = numberOfPart * filePartSize;
+      chunkEnd = (numberOfPart + 1) * filePartSize;
+      if (chunkEnd > size) {
+        chunkEnd = size;
+      }
       // eslint-disable-next-line no-await-in-loop
       result = await uploadFile(
         token,
@@ -198,7 +200,7 @@ const post = async (req, res) => {
         uploadId,
         numberOfPart + 1,
         mimetype,
-        buffer,
+        buffer.slice(chunkStart, chunkEnd),
       );
       if (result instanceof Error) {
         return errorBuilder(res, 413, [result.message]);
