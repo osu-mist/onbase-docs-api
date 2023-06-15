@@ -16,14 +16,14 @@ describe('Test keywords-serializer', () => {
     const updatedKeywordCollection = {
       id: 'fake id',
     };
-    const result = serializeKeywords(updatedKeywordCollection, {method: 'POST', query: 'fake'});
+    const result = serializeKeywords(updatedKeywordCollection, { method: 'POST', query: 'fake' });
     return testSingleResource(result);
   });
   it('serializeKeywords should properly serialize keywords collection (GET) in JSON API format', () => {
     const updatedKeywordCollection = {
       id: 'fake id',
     };
-    const result = serializeKeywords(updatedKeywordCollection, {method: 'GET', query: 'fake'});
+    const result = serializeKeywords(updatedKeywordCollection, { method: 'GET', query: 'fake' });
     return testSingleResource(result);
   });
 });

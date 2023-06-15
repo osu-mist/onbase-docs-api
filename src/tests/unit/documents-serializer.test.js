@@ -23,14 +23,14 @@ describe('Test documents-serializer', () => {
     const document = {
       id: 'fake id',
     };
-    const result = serializeDocument(document, {method: 'POST', query: 'fake'});
+    const result = serializeDocument(document, { method: 'POST', query: 'fake' });
     return testSingleResource(result);
   });
   it('serializeDocument should properly serialize a single document (GET) in JSON API format', () => {
     const document = {
       id: 'fake id',
     };
-    const result = serializeDocument(document, {method: 'GET', query: 'fake'});
+    const result = serializeDocument(document, { method: 'GET', query: 'fake' });
     return testSingleResource(result);
   });
 });

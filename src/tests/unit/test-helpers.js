@@ -127,21 +127,19 @@ const testMultipleResources = (serializedResources) => {
 /**
  * Helper function for creating an error response for a web request.
  *
- * @param {int} code the HTTP status code of the error
+ * @param {number} code the HTTP status code of the error
  * @returns {object} an error resonse object
  */
-const createError = (code) => {
-  return {
-    'response': {
-      'status': code,
-       'data': {
-         'error': `${code} error`,
-         'error_description': `${code} error message`,
-         'detail': `${code} error message`,
-        }
-      }
-    };
-};
+const createError = (code) => ({
+  response: {
+    status: code,
+    data: {
+      error: `${code} error`,
+      error_description: `${code} error message`,
+      detail: `${code} error message`,
+    },
+  },
+});
 
 /**
  * Helper function for testing that the result contains data
