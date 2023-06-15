@@ -124,6 +124,116 @@ const testMultipleResources = (serializedResources) => {
   return serializedResourcesData;
 };
 
+/**
+ * Helper function for creating an error response for a web request.
+ *
+ * @param {int} code the HTTP status code of the error
+ * @returns {object} an error resonse object
+ */
+const createError = (code) => {
+  return {
+    'response': {
+      'status': code,
+       'data': {
+         'error': `${code} error`,
+         'error_description': `${code} error message`,
+         'detail': `${code} error message`,
+        }
+      }
+    };
+};
+
+/**
+ * Helper function for testing that the result contains data
+ * and a cookie.
+ *
+ * @param {object} result a result to validate
+ * @param {object} data the expected result data
+ * @param {object} stub the axios stub used for web requests
+ */
+const testResultWithCookie = (result, data, stub) => {
+  result.should
+    .eventually.be.fulfilled
+    .and.deep.equals([data, 'fake cookie'])
+    .and.to.have.length(2);
+  sinon.assert.calledOnce(stub);
+};
+
+/**
+ * Helper function for testing that the result contains only a cookie.
+ *
+ * @param {object} result a result to validate
+ * @param {object} stub the axios stub used for web requests
+ */
+const testResultCookieOnly = (result, stub) => {
+  result.should
+    .eventually.be.fulfilled
+    .and.deep.equals(['fake cookie'])
+    .and.to.have.length(1);
+  sinon.assert.calledOnce(stub);
+};
+
+/**
+ * Helper function for testing that the result contains data
+ * but no cookie.
+ *
+ * @param {object} result a result to validate
+ * @param {object} data the expected result data
+ * @param {object} stub the axios stub used for web requests
+ */
+const testResultData = (result, data, stub) => {
+  result.should
+    .eventually.be.fulfilled
+    .and.deep.equals(data);
+  sinon.assert.calledOnce(stub);
+};
+
+/**
+ * Helper function for testing that the result was an error
+ * with the specified message.
+ *
+ * @param {object} result a result to validate
+ * @param {string} msg the expected error message
+ * @param {object} stub the axios stub used for web requests
+ */
+const testResultError = (result, msg, stub) => {
+  result.should
+    .eventually.be.fulfilled
+    .and.be.instanceOf(Error)
+    .and.have.property('message', msg);
+  sinon.assert.calledOnce(stub);
+};
+
+/**
+ * Helper function for testing that the result was an exception thrown
+ * with the specified message.
+ *
+ * @param {object} result a result to validate
+ * @param {string} msg the expected error message
+ * @param {object} stub the axios stub used for web requests
+ */
+const testResultThrowsMessage = (result, msg, stub) => {
+  result.should
+    .eventually.be.rejected
+    .and.be.instanceOf(Error)
+    .and.have.property('message', msg);
+  sinon.assert.calledOnce(stub);
+};
+
+/**
+ * Helper function for testing that the result was an exception thrown
+ * with an error object.
+ *
+ * @param {object} result a result to validate
+ * @param {object} stub the axios stub used for web requests
+ */
+const testResultThrows = (result, stub) => {
+  result.should
+    .eventually.be.rejected
+    .and.be.instanceOf(Error);
+  sinon.assert.calledOnce(stub);
+};
+
 export {
   createDaoProxy,
   testSingleResource,
@@ -131,4 +241,11 @@ export {
   getConnectionStub,
   daoBeforeEach,
   createConfigStub,
+  createError,
+  testResultWithCookie,
+  testResultCookieOnly,
+  testResultData,
+  testResultError,
+  testResultThrowsMessage,
+  testResultThrows,
 };

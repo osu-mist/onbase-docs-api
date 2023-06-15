@@ -547,7 +547,7 @@ const getDocumentContent = async (token, fbLb, documentId) => {
     if (err.response && err.response.status === 404) {
       logger.error(err.response.data.errors);
       return new Error(err.response.data.detail);
-    } if (err.response && (err.response.status !== 200 || err.response.status !== 206)) {
+    } if (err.response && !_.includes([200, 206], err.response.status)) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);
     }
