@@ -48,10 +48,6 @@ namespace OnBaseDocsApi
                 c.Password = ReplaceVar(regex, c.Password);
             }
 
-            // Disable SSL certificate validation.
-            ServicePointManager.ServerCertificateValidationCallback
-                += (sender, certificate, chain, sslPolicyErrors) => true;
-
             // Load profiles
             Profiles = new ProfileCollection(Config.Profiles);
 
