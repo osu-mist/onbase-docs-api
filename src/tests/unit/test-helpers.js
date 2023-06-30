@@ -4,6 +4,7 @@ import _ from 'lodash';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 
+import { fakeDocument } from './mock-data';
 import { logger } from 'utils/logger';
 import { fakeBaseUrl, fakeOsuId } from './mock-data';
 
@@ -128,7 +129,7 @@ const testMultipleResources = (serializedResources) => {
  * Helper function for creating an error response for a web request.
  *
  * @param {number} code the HTTP status code of the error
- * @returns {object} an error resonse object
+ * @returns {object} an error response object
  */
 const createError = (code) => ({
   response: {
@@ -232,6 +233,26 @@ const testResultThrows = (result, stub) => {
   sinon.assert.calledOnce(stub);
 };
 
+/**
+ * Run a suite of up to two serializer tests:
+ *  1) Tests that using HTTP POST returns a single resource.
+ *  2) Tests that using HTTP GET returns a single resource.
+ *
+ * @param {String} testLabel the string name of the getter
+ * @param {String} typeLabel the string name of the data returned by the serializer
+ * @param {object} serializer the stubbed serializer
+ */
+const runSerializerSuite = (testLabel, typeLabel, serializer) => {
+  it(`${testLabel} should properly serialize ${typeLabel} (POST) in JSON API format`, () => {
+    const result = serializer(fakeDocument, { method: 'POST', query: 'fake' });
+    return testSingleResource(result);
+  });
+  it(`${testLabel} should properly serialize ${typeLabel} (GET) in JSON API format`, () => {
+    const result = serializer(fakeDocument, { method: 'GET', query: 'fake' });
+    return testSingleResource(result);
+  });
+};
+
 export {
   createDaoProxy,
   testSingleResource,
@@ -246,4 +267,5 @@ export {
   testResultError,
   testResultThrowsMessage,
   testResultThrows,
+  runSerializerSuite,
 };

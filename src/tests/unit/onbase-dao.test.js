@@ -5,6 +5,17 @@ import sinon from 'sinon';
 import proxyquire from 'proxyquire';
 import 'config';
 import setCookie from 'set-cookie-parser';
+
+import {
+  docType1,
+  fakeData,
+  keyword1,
+  keyword2,
+  keywordType1,
+  keywordType2,
+  fakeKeywordsTypesData,
+} from './mock-data';
+
 import {
   createConfigStub,
   testResultWithCookie,
@@ -18,49 +29,18 @@ import {
 chai.should();
 chai.use(chaiAsPromised);
 
-const docType1 = {
-  id: '24680',
-  name: 'TestDocType',
-  typeId: '924680',
-};
-const fakeData = {
-  data: {
-    access_token: 'fake token',
-    keywordGuid: 'fake guid',
-    keywordCollection: 'fake keyword collection',
-    id: 'fake id',
-    items: [docType1],
-  },
-};
-
-const keyword1 = {
-  name: 'Keyword1',
-  typeId: '924680',
-  keywordTypeId: '924680',
-};
-const keyword2 = {
-  name: 'Keyword2',
-  typeId: '9123456',
-  keywordTypeId: '9123456',
-};
-const keywordType1 = {
-  id: '924680',
-  name: 'KeywordType1',
-};
-const keywordType2 = {
-  id: '9123456',
-  name: 'KeywordType2',
-};
-const fakeKeywordsTypesData = {
-  data: {
-    access_token: 'fake token',
-    keywordGuid: 'fake guid',
-    keywordCollection: 'fake keyword collection',
-    id: 'fake id',
-    items: [keywordType1, keywordType2],
-  },
-};
-
+/**
+ * Run a suite of up to three tests:
+ *  1) Tests that the getter returned an Error response object.
+ *  2) Tests that the getter threw an Error exception that contained an object as the message.
+ *  3) Tests that the getter threw an Error exception with the expected error message.
+ *
+ * @param {String} testLabel the string name of the getter
+ * @param {object} getter the stubbed getter that makes a request for data
+ * @param {object} errReturn a stubbed response that returns an error response
+ * @param {object} errThrowObj a stubbed response that throws an object
+ * @param {object} errThrowMsg a stubbed response that throws a message
+ */
 const runErrorSuite = (testLabel, getter, errReturn, errThrowObj, errThrowMsg) => {
   if (errReturn) {
     it(`${testLabel} request returns error ${errReturn.response.status}`,
@@ -95,6 +75,7 @@ const runErrorSuite = (testLabel, getter, errReturn, errThrowObj, errThrowMsg) =
       );
     });
 };
+
 const error200 = createError(200);
 const error201 = createError(201);
 const error204 = createError(204);
