@@ -11,7 +11,6 @@ import {
   fakeData,
   keyword1,
   keyword2,
-  keywordType1,
   keywordType2,
   fakeKeywordsTypesData,
 } from './mock-data';

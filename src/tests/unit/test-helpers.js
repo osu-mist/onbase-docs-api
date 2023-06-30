@@ -4,9 +4,8 @@ import _ from 'lodash';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 
-import { fakeDocument } from './mock-data';
 import { logger } from 'utils/logger';
-import { fakeBaseUrl, fakeOsuId } from './mock-data';
+import { fakeBaseUrl, fakeOsuId, fakeDocument } from './mock-data';
 
 /**
  * Creates sinon stub for oracledb connection
