@@ -7,7 +7,7 @@ import {
 import { serializeDocumentTypes } from '../../serializers/document-types-serializer';
 
 /**
- * Get documents
+ * Get document types
  *
  * @type {RequestHandler}
  */
