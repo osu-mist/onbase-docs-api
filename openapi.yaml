@@ -84,7 +84,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentResult'
+                $ref: '#/components/schemas/DocumentSetResult'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -241,6 +241,32 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /onbase-docs/documentTypes:
+    get:
+      summary: Get document types
+      tags:
+        - document-types
+      description: Get document Types
+      operationId: getDocumentTypes
+      parameters:
+        - name: filter[documentTypeName]
+          in: query
+          required: true
+          description: The name of the document type to store the document into
+          example: 'PAR PAR Form'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTypeSetResult'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
 components:
   securitySchemes:
     OAuth2:
@@ -304,7 +330,7 @@ components:
         type:
           type: string
           enum:
-            - document
+            - documents
         links:
           $ref: '#/components/schemas/SelfLink'
         attributes:
@@ -373,18 +399,58 @@ components:
                           type: string
                           description: Formatted value of keyword
                           example: '933012347'
+    DocumentTypeResource:
+      properties:
+        id:
+          type: string
+          description: The unique identifier of a document type
+        type:
+          type: string
+          enum:
+            - document-types
+        links:
+          $ref: '#/components/schemas/SelfLink'
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Name of the document type
+              example: 'PAR PAR Form'
+            documentTypeGroupId:
+              type: string
+              description: The ID of the document type group
+              example: '1234'
     DocumentResult:
       properties:
         links:
           $ref: '#/components/schemas/SelfLink'
         data:
           $ref: '#/components/schemas/DocumentResource'
+    DocumentSetResult:
+      type: object
+      properties:
+        links:
+          $ref: '#/components/schemas/SelfLink'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentResource'
     KeywordsResult:
       properties:
         links:
           $ref: '#/components/schemas/SelfLink'
         data:
           $ref: '#/components/schemas/KeywordsResource'
+    DocumentTypeSetResult:
+      type: object
+      properties:
+        links:
+          $ref: '#/components/schemas/SelfLink'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentTypeResource'
     ErrorObject:
       properties:
         status:
