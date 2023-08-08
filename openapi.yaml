@@ -241,7 +241,7 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /onbase-docs/documentTypes:
+  /onbase-docs/document-types:
     get:
       summary: Get document types
       tags:
