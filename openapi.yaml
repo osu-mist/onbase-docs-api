@@ -246,8 +246,8 @@ paths:
       summary: Get document types
       tags:
         - document-types
-      description: Get document type
-      operationId: getDocumentType
+      description: Get document types
+      operationId: getDocumentTypes
       parameters:
         - name: filter[documentTypeName]
           in: query
