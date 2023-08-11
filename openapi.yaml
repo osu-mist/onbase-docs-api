@@ -246,7 +246,7 @@ paths:
       summary: Get document types
       tags:
         - document-types
-      description: Get document Types
+      description: Get document types
       operationId: getDocumentTypes
       parameters:
         - name: filter[documentTypeName]
@@ -267,6 +267,26 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+  /onbase-docs/document-types/{documentTypeId}:
+    get:
+      summary: Get document type by ID
+      tags:
+        - document-types
+      description: Get document type by ID
+      operationId: getDocumentTypeById
+      parameters:
+        - $ref: '#/components/parameters/documentTypeId'
+      responses:
+        '200':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTypeResult'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 components:
   securitySchemes:
     OAuth2:
@@ -281,6 +301,13 @@ components:
       name: documentId
       in: path
       description: The unique identifier of a document
+      required: true
+      schema:
+        type: string
+    documentTypeId:
+      name: documentTypeId
+      in: path
+      description: The unique identifier of a document type
       required: true
       schema:
         type: string
@@ -442,6 +469,12 @@ components:
           $ref: '#/components/schemas/SelfLink'
         data:
           $ref: '#/components/schemas/KeywordsResource'
+    DocumentTypeResult:
+      properties:
+        links:
+          $ref: '#/components/schemas/SelfLink'
+        data:
+          $ref: '#/components/schemas/DocumentTypeResource'
     DocumentTypeSetResult:
       type: object
       properties:
