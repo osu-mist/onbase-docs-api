@@ -74,7 +74,7 @@ const get = async (req, res) => {
     return errorBuilder(res, 400, [result.message]);
   }
 
-  const documentTypeId = result[0];
+  const documentTypeId = result[0][0].id;
   [, fbLb] = result;
 
   // Convert keyword type names to keyword IDs

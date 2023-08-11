@@ -590,7 +590,7 @@ const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
       return new Error(errMessage);
     }
 
-    return [res.data.items[0].id, getFbLbCookie(res)];
+    return [res.data.items, getFbLbCookie(res)];
   } catch (err) {
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
