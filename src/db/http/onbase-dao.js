@@ -556,15 +556,28 @@ const getDocumentContent = async (token, fbLb, documentId) => {
 };
 
 /**
- * Get document type ID
+ * Get document type
  *
  * @param {string} token access token
  * @param {string} fbLb FB_LB cookie value
  * @param {Object} documentTypeName document type name
- * @returns {Promise} resolves if document type ID fetched or rejects otherwise
+ * @param {Object} documentTypeId document type ID
+ * @returns {Promise} resolves if document type fetched or rejects otherwise
  */
-const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
+const getDocumentType = async (
+  token,
+  fbLb,
+  documentTypeName,
+  documentTypeId,
+) => {
   try {
+    let params;
+    if (documentTypeName) {
+      params = { systemName: documentTypeName };
+    } else if (documentTypeId) {
+      params = { id: documentTypeId };
+    }
+
     const reqConfig = {
       method: 'get',
       url: `${onbaseDocumentTypesUrl}`,
@@ -572,7 +585,7 @@ const getDocumentTypeByName = async (token, fbLb, documentTypeName) => {
         Authorization: `Bearer ${token}`,
         Cookie: `FB_LB=${fbLb}`,
       },
-      params: { systemName: documentTypeName },
+      params,
       withCredentials: true,
     };
 
@@ -836,7 +849,7 @@ export {
   getDocumentKeywordTypes,
   patchDocumentKeywords,
   getDocumentContent,
-  getDocumentTypeByName,
+  getDocumentType,
   getKeywordTypesByNames,
   createQuery,
   getQueryResults,

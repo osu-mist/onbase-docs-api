@@ -220,41 +220,38 @@ describe('Test onbase-dao (non-keyword types)', () => {
     (dao) => dao.getDocumentContent('fake token', 'fake fbLb', 'dummy id'),
     error404, error200, error201);
 
-  it('getDocumentTypeByName should return a valid result',
-    () => testResultWithCookie(
-      onbaseDao.getDocumentTypeByName('fake token', 'fake fbLb', docType1.id),
-      docType1.id,
+  it('getDocumentType should return a valid result', () => testResultWithCookie(
+    onbaseDao.getDocumentType('fake token', 'fake fbLb', docType1.id, null),
+    docType1.id,
+    stubAxios,
+  ));
+  runErrorSuite(
+    'getDocumentType',
+    (dao) => dao.getDocumentType('fake token', 'fake fbLb', docType1.id, null),
+    undefined,
+    error200,
+    error201,
+  );
+
+  it('getDocumentType more than one document type should fail', () => {
+    fakeData.data.items = [docType1, docType1];
+
+    testResultError(
+      onbaseDao.getDocumentType('fake token', 'fake fbLb', docType1.id, null),
+      'More than one document types matched.',
       stubAxios,
-    ));
-  runErrorSuite('getDocumentTypeByName',
-    (dao) => dao.getDocumentTypeByName('fake token', 'fake fbLb', docType1.id),
-    undefined, error200, error201);
+    );
+  });
 
-  it('getDocumentTypeByName more than one document type should fail',
-    () => {
-      fakeData.data.items = [docType1, docType1];
+  it('getDocumentType no document type should fail', () => {
+    fakeData.data.items = [];
 
-      testResultError(
-        onbaseDao.getDocumentTypeByName(
-          'fake token', 'fake fbLb', docType1.id,
-        ),
-        'More than one document types matched.',
-        stubAxios,
-      );
-    });
-
-  it('getDocumentTypeByName no document type should fail',
-    () => {
-      fakeData.data.items = [];
-
-      testResultError(
-        onbaseDao.getDocumentTypeByName(
-          'fake token', 'fake fbLb', docType1.id,
-        ),
-        'Please provide a valid document type.',
-        stubAxios,
-      );
-    });
+    testResultError(
+      onbaseDao.getDocumentType('fake token', 'fake fbLb', docType1.id, null),
+      'Please provide a valid document type.',
+      stubAxios,
+    );
+  });
 
   it('createQuery should return a valid result',
     () => testResultWithCookie(

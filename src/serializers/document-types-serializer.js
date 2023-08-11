@@ -9,10 +9,38 @@ const documentTypeResourceProp = openapi.components.schemas.DocumentTypeResource
 const documentTypeResourceType = documentTypeResourceProp.type.enum[0];
 const documentTypeResourceKeys = _.keys(documentTypeResourceProp.attributes.properties);
 const documentTypeResourcePath = 'document-types';
-const documentResourceUrl = resourcePathLink(
+const documentTypeResourceUrl = resourcePathLink(
   apiBaseUrl,
   documentTypeResourcePath,
 );
+
+/**
+ * Serialize document type resource to JSON API
+ *
+ * @param {object} rawDocumentType document metadata
+ * @param {boolean} req Express request object
+ * @returns {object} Serialized documentResource object
+ */
+const serializeDocumentType = (rawDocumentType, { method, query }) => {
+  const baseUrl = method === 'POST'
+    ? documentTypeResourceUrl
+    : resourcePathLink(documentTypeResourceUrl, rawDocumentType.id);
+  const topLevelSelfLink = paramsLink(baseUrl, query);
+
+  const serializerArgs = {
+    identifierField: 'id',
+    resourceKeys: documentTypeResourceKeys,
+    resourcePath: documentTypeResourcePath,
+    topLevelSelfLink,
+    query,
+    enableDataLinks: true,
+  };
+
+  return new JsonApiSerializer(
+    documentTypeResourceType,
+    serializerOptions(serializerArgs),
+  ).serialize(rawDocumentType);
+};
 
 /**
  * Serialize document type resource to JSON API
@@ -22,7 +50,7 @@ const documentResourceUrl = resourcePathLink(
  * @returns {object} Serialized documentTypeResource object
  */
 const serializeDocumentTypes = (rawDocumentTypes, query) => {
-  const topLevelSelfLink = paramsLink(documentResourceUrl, query);
+  const topLevelSelfLink = paramsLink(documentTypeResourceUrl, query);
 
   const serializerArgs = {
     identifierField: 'id',
@@ -39,4 +67,4 @@ const serializeDocumentTypes = (rawDocumentTypes, query) => {
   ).serialize(rawDocumentTypes);
 };
 
-export { serializeDocumentTypes };
+export { serializeDocumentType, serializeDocumentTypes };

@@ -1,7 +1,7 @@
 import { errorBuilder } from 'errors/errors';
 import { parseQuery } from 'utils/parse-query';
 import {
-  getDocumentTypeByName,
+  getDocumentType,
   getAccessToken,
 } from '../../db/http/onbase-dao';
 import { serializeDocumentTypes } from '../../serializers/document-types-serializer';
@@ -24,7 +24,7 @@ const get = async (req, res) => {
   const token = result[0];
   const [, fbLb] = result;
 
-  result = await getDocumentTypeByName(token, fbLb, documentTypeName);
+  result = await getDocumentType(token, fbLb, documentTypeName, null);
   if (result instanceof Error) {
     return errorBuilder(res, 400, [result.message]);
   }
