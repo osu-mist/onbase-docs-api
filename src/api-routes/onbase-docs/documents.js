@@ -221,6 +221,9 @@ const post = async (req, res) => {
 
     // Get document metadata
     const documentMetadata = await getDocumentById(token, fbLb, documentId);
+    if (documentMetadata instanceof Error) {
+      throw new Error('Document created but cannot be retrieved');
+    }
 
     // Serialize document
     const serializedDocument = serializeDocument(documentMetadata, req);
