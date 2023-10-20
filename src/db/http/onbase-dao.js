@@ -481,16 +481,10 @@ const patchDocumentKeywords = async (
   newKeywords,
 ) => {
   try {
-    const newKeywordsMap = {};
-    _.forEach(newKeywords, (newKeyword) => {
-      newKeywordsMap[newKeyword.typeId] = _.map(newKeyword.values, (value) => ({ value }));
-    });
-
-    _.forEach(currentKeywordCollection.items[0].keywords, (keyword) => {
-      if (_.has(newKeywordsMap, keyword.typeId)) {
-        keyword.values = newKeywordsMap[keyword.typeId];
-      }
-    });
+    const data = {
+      items: [{ keywords: newKeywords }],
+      keywordGuid: currentKeywordCollection.keywordGuid,
+    };
 
     const reqConfig = {
       method: 'put',
@@ -499,7 +493,7 @@ const patchDocumentKeywords = async (
         Authorization: `Bearer ${token}`,
         Cookie: `FB_LB=${fbLb}`,
       },
-      data: currentKeywordCollection,
+      data,
       withCredentials: true,
     };
 
