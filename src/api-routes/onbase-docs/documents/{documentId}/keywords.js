@@ -22,11 +22,13 @@ const get = async (req, res) => {
     const [token, fbLb] = await getAccessToken(onbaseProfile);
 
     // Get current keyword collection
-    const [currentKeywordCollection] = await getDocumentKeywords(token, fbLb, documentId);
+    const result = await getDocumentKeywords(token, fbLb, documentId);
 
-    if (currentKeywordCollection instanceof Error) {
-      return errorBuilder(res, 404, currentKeywordCollection.message);
+    if (result instanceof Error) {
+      return errorBuilder(res, 404, result.message);
     }
+
+    const [currentKeywordCollection] = result;
 
     // Serialize keywords
     currentKeywordCollection.id = documentId;
