@@ -483,7 +483,7 @@ const patchDocumentKeywords = async (
   try {
     const newKeywordsMap = {};
     _.forEach(newKeywords, (newKeyword) => {
-      newKeywordsMap[newKeyword.keywordTypeId] = _.map(newKeyword.values, (value) => ({ value }));
+      newKeywordsMap[newKeyword.typeId] = _.map(newKeyword.values, (value) => ({ value }));
     });
 
     _.forEach(currentKeywordCollection.items[0].keywords, (keyword) => {
@@ -507,6 +507,12 @@ const patchDocumentKeywords = async (
     return [res.data, getFbLbCookie(res)];
   } catch (err) {
     logger.error(err);
+
+    if (err.response && err.response.data.status === 400) {
+      const error = err.response.data.detail || err.response.data.errors;
+      logger.error(error);
+      return new Error(error);
+    }
     if (err.response && err.response.status !== 200) {
       logger.error(err.response.data.errors);
       throw new Error(err.response.data.detail);

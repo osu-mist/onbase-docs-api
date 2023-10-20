@@ -80,6 +80,11 @@ const patch = async (req, res) => {
       currentKeywordCollection,
       newKeywords,
     );
+
+    if (result instanceof Error) {
+      return errorBuilder(res, 400, [result.message]);
+    }
+
     [, fbLb] = result;
 
     // Get updated keyword collection
