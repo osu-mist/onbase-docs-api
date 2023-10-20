@@ -67,6 +67,11 @@ const patch = async (req, res) => {
 
     // Get current keyword collection
     result = await getDocumentKeywords(token, fbLb, documentId);
+
+    if (result instanceof Error) {
+      return errorBuilder(res, 404, result.message);
+    }
+
     const currentKeywordCollection = result[0];
     [, fbLb] = result;
 
