@@ -291,6 +291,7 @@ const postIndexingModifiers = async (
  * @param {string} token access token
  * @param {string} fbLb FB_LB cookie value
  * @param {string} documentTypeId the unique identifier of a document type
+ * @param {string} fileTypeId the unique identifier of a file type
  * @param {string} uploadId file uploaded ID
  * @param {string} keywordCollection keyword collection
  * @returns {Promise} resolves if document archived successfully or rejects otherwise
@@ -299,6 +300,7 @@ const archiveDocument = async (
   token,
   fbLb,
   documentTypeId,
+  fileTypeId,
   uploadId,
   keywordCollection,
 ) => {
@@ -314,6 +316,7 @@ const archiveDocument = async (
         documentTypeId,
         uploads: [{ id: uploadId }],
         keywordCollection,
+        fileTypeId,
       },
       withCredentials: true,
     };
