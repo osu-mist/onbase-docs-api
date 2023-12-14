@@ -1,3 +1,4 @@
+import config from 'config';
 import _ from 'lodash';
 
 import { errorBuilder, errorHandler } from 'errors/errors';
@@ -20,6 +21,8 @@ import {
   serializeDocument,
   serializeDocuments,
 } from '../../serializers/documents-serializer';
+
+const fileTypesMap = config.get('fileTypesMap');
 
 /**
  * Get documents
@@ -142,6 +145,11 @@ const post = async (req, res) => {
       mimetype,
     } = uploadedDocument;
 
+    const fileExtension = /[^.]*$/.exec(originalname)[0];
+    if (!_.has(fileTypesMap, fileExtension)) {
+      return errorBuilder(res, 400, ['Uploaded file type is not supported']);
+    }
+
     let result;
     let fbLb; // the load balancer cookie (FB_LB) is updated after every request
 
@@ -176,7 +184,6 @@ const post = async (req, res) => {
     [, fbLb] = result;
 
     // Prepare staging area
-    const fileExtension = /[^.]*$/.exec(originalname)[0];
     result = await initiateStagingArea(token, fbLb, fileExtension, size);
 
     const { id: uploadId, numberOfParts, filePartSize } = result[0];
@@ -213,6 +220,7 @@ const post = async (req, res) => {
       token,
       fbLb,
       documentTypeId,
+      fileTypesMap[fileExtension],
       uploadId,
       keywordCollection,
     );
