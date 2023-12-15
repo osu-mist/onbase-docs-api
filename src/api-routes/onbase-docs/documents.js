@@ -146,7 +146,7 @@ const post = async (req, res) => {
     } = uploadedDocument;
 
     const fileExtension = /[^.]*$/.exec(originalname)[0];
-    if (!_.has(fileTypesMap, fileExtension)) {
+    if (!_.has(fileTypesMap, _.lowerCase(fileExtension))) {
       return errorBuilder(res, 400, ['Uploaded file type is not supported']);
     }
 
