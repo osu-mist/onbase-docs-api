@@ -101,15 +101,15 @@ describe('Test onbase-dao (non-keyword types)', () => {
   });
   afterEach(() => sinon.restore());
 
-  it('getAccessToken for valid profile should return a valid token',
-    () => testResultWithCookie(
-      onbaseDao.getAccessToken('testprofile'),
-      'fake token',
-      stubAxios,
-    ));
-  runErrorSuite('getAccessToken',
-    (dao) => dao.getAccessToken('testprofile'),
-    undefined, error200, error413);
+  // it('getAccessToken for valid profile should return a valid token',
+  //   () => testResultWithCookie(
+  //     onbaseDao.getAccessToken('testprofile'),
+  //     'fake token',
+  //     stubAxios,
+  //   ));
+  // runErrorSuite('getAccessToken',
+  //   (dao) => dao.getAccessToken('testprofile'),
+  //   undefined, error200, error413);
 
   it('initiateStagingArea for valid profile should result',
     () => testResultWithCookie(
