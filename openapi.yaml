@@ -73,14 +73,14 @@ paths:
         - name: filter[endDate]
           in: query
           required: false
-          description: The starting date of the date range
+          description: The end date of the date range
           schema:
             type: string
             format: date
             example: '2021-12-31'
       responses:
         '200':
-          description: Document uploaded
+          description: Document fetched successfully
           content:
             application/json:
               schema:
@@ -387,6 +387,11 @@ components:
                 - Active
                 - Deleted
                 - Inactive
+            documentDate:
+              type: string
+              format: date
+              description: The document date
+              example: '2017-07-21'
     KeywordsResource:
       properties:
         id:
