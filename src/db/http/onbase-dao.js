@@ -734,7 +734,7 @@ const createQuery = async (token, fbLb, documentTypeId, keywordTypes, startDate,
           },
         ],
         documentDateRangeCollection: [documentDateRange],
-        maxResults: 100,
+        maxResults: 10000,
       },
       withCredentials: true,
     };
