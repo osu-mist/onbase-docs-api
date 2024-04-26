@@ -112,12 +112,27 @@ const get = async (req, res) => {
   [, fbLb] = result;
 
   // Get documents meta data by document IDs
-  result = !_.isEmpty(documentIds)
-    ? await getDocumentsByIds(token, fbLb, documentIds)
-    : { items: [] };
+  let items = [];
+  let tempResult;
+  const searchSize = 150;
+  const documentsLength = _.size(documentIds);
+
+  for (let i = 0; i < documentsLength; i += searchSize) {
+    /* eslint-disable no-await-in-loop */
+    tempResult = await getDocumentsByIds(
+      token,
+      fbLb,
+      _.slice(
+        documentIds,
+        i,
+        i + searchSize > documentsLength ? documentsLength : i + searchSize,
+      ),
+    );
+    items = _.concat(items, tempResult.items);
+  }
 
   // Serialize documents
-  const serializedDocuments = serializeDocuments(result.items, query);
+  const serializedDocuments = serializeDocuments(items, query);
 
   return res.status(200).send(serializedDocuments);
 };
