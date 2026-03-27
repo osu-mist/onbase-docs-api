@@ -62,11 +62,11 @@ const getAccessToken = async (onbaseProfile) => {
       const formData = {
         grant_type: 'password',
         scope: 'evolution',
-        tenant: tenant,
+        tenant,
         client_id: clientId,
         client_secret: clientSecret,
-        username: username,
-        password: password,
+        username,
+        password,
       };
       const urlEncodedFormData = new URLSearchParams(formData);
 
