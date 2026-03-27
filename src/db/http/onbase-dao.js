@@ -60,20 +60,22 @@ const getAccessToken = async (onbaseProfile) => {
     ) {
       const { username, password } = onbaseProfiles[onbaseProfile];
 
-      const formData = new FormData();
-      formData.append('grant_type', 'password');
-      formData.append('scope', 'evolution');
-      formData.append('tenant', tenant);
-      formData.append('client_id', clientId);
-      formData.append('client_secret', clientSecret);
-      formData.append('username', username);
-      formData.append('password', password);
+      const formData = {
+          grant_type: 'password',
+          scope: 'evolution',
+          tenant: tenant,
+          client_id: clientId,
+          client_secret: clientSecret,
+          username: username,
+          password: password
+      }
+      const urlEncodedFormData = new URLSearchParams(formData);
 
       const reqConfig = {
         method: 'post',
         url: `${onbaseIdpUrl}/connect/token`,
-        headers: formData.getHeaders(),
-        data: formData,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: urlEncodedFormData,
         withCredentials: true,
       };
 
