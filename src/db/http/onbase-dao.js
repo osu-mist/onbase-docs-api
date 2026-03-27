@@ -1,6 +1,5 @@
 import axios from 'axios';
 import config from 'config';
-import FormData from 'form-data';
 import _ from 'lodash';
 import moment from 'moment';
 import setCookie from 'set-cookie-parser';
